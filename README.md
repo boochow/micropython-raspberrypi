@@ -1,1 +1,1 @@
-# MicroPython-bare-rpi
+# micropython-raspberrypi
