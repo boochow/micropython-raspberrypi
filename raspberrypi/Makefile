@@ -41,7 +41,8 @@ SRC_S = \
 
 OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o) $(SRC_S:.s=.o) $(SRC_LIB:.c=.o))
 
-all: $(BUILD)/firmware.img
+#all: $(BUILD)/firmware.img
+all: $(BUILD)/config.txt
 
 list: $(BUILD)/firmware.elf
 	$(CROSS_COMPILE)objdump -d $(BUILD)/firmware.elf > $(BUILD)/firmware.list
@@ -53,5 +54,10 @@ $(BUILD)/firmware.elf: $(OBJ)
 
 $(BUILD)/firmware.img: $(BUILD)/firmware.elf
 	$(OBJCPY) $(BUILD)/firmware.elf -O binary $(BUILD)/firmware.img
+
+$(BUILD)/config.txt: config-template.txt $(BUILD)/firmware.img 
+	$(RM) -f $@
+	$(CP) $< $@
+	$(ECHO) "kernel=firmware.img" >> $@
 
 include $(TOP)/py/mkrules.mk

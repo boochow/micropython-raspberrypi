@@ -1,0 +1,4 @@
+# Raspberry Pi boot configration
+# see https://www.raspberrypi.org/documentation/configuration/config-txt/
+# for more details.
+
