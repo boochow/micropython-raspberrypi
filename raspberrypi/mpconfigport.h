@@ -6,6 +6,7 @@
 #define MICROPY_DEBUG_VERBOSE       (0)
 #define MICROPY_QSTR_BYTES_IN_HASH  (1)
 #define MICROPY_ALLOC_PATH_MAX      (512)
+#define MICROPY_ALLOC_PARSE_CHUNK_INIT (16)
 #define MICROPY_EMIT_X64            (0)
 #define MICROPY_EMIT_THUMB          (0)
 #define MICROPY_EMIT_INLINE_THUMB   (0)
@@ -13,10 +14,11 @@
 #define MICROPY_COMP_CONST          (0)
 #define MICROPY_COMP_DOUBLE_TUPLE_ASSIGN (0)
 #define MICROPY_COMP_TRIPLE_TUPLE_ASSIGN (0)
+#define MICROPY_STACK_CHECK         (1)
 #define MICROPY_MEM_STATS           (0)
 #define MICROPY_DEBUG_PRINTERS      (1)
 #define MICROPY_ENABLE_GC           (1)
-#define MICROPY_HELPER_REPL         (0)
+#define MICROPY_HELPER_REPL         (1)
 #define MICROPY_HELPER_LEXER_UNIX   (0)
 #define MICROPY_ENABLE_SOURCE_LINE  (1)
 #define MICROPY_ENABLE_DOC_STRING   (1)
@@ -46,6 +48,8 @@
 #define MICROPY_FLOAT_IMPL          (MICROPY_FLOAT_IMPL_NONE)
 #define MICROPY_USE_INTERNAL_PRINTF (1)
 
+#define MICROPY_REPL_AUTO_INDENT    (1)
+#define MICROPY_KBD_EXCEPTION       (0)
 // type definitions for the specific machine
 
 #define malloc(n) m_malloc(n)
@@ -54,15 +58,16 @@
 
 #define MICROPY_MAKE_POINTER_CALLABLE(p) ((void*)((mp_uint_t)(p) | 1))
 
-#define UINT_FMT "%lu"
-#define INT_FMT "%ld"
+#define UINT_FMT "%u"
+#define INT_FMT "%d"
 
 typedef int32_t mp_int_t; // must be pointer size
 typedef uint32_t mp_uint_t; // must be pointer size
 typedef long mp_off_t;
 
 // dummy print
-#define MP_PLAT_PRINT_STRN(str, len) pios_uart_write(str, len)
+//#define MP_PLAT_PRINT_STRN(str, len) uart_write(str, len)
+#define MP_PLAT_PRINT_STRN(str, len) mp_hal_stdout_tx_strn_cooked(str, len)
 
 #define MICROPY_PORT_BUILTIN_MODULES 
 
@@ -72,3 +77,11 @@ typedef long mp_off_t;
 
 // We need to provide a declaration/definition of alloca()
 #include <alloca.h>
+
+#define MICROPY_HW_BOARD_NAME "Raspberry Pi"
+#define MICROPY_HW_MCU_NAME "Arm 1176jzf-s"
+
+#define MP_STATE_PORT MP_STATE_VM
+
+#define MICROPY_PORT_ROOT_POINTERS \
+    const char *readline_hist[8];
