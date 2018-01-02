@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include "uart.h"
+#include "board_QEMU.h"
 
 // options to control how MicroPython is built
 #define MICROPY_DEBUG_VERBOSE       (0)
@@ -16,7 +16,7 @@
 #define MICROPY_COMP_TRIPLE_TUPLE_ASSIGN (0)
 #define MICROPY_STACK_CHECK         (1)
 #define MICROPY_MEM_STATS           (0)
-#define MICROPY_DEBUG_PRINTERS      (1)
+#define MICROPY_DEBUG_PRINTERS      (0)
 #define MICROPY_ENABLE_GC           (1)
 #define MICROPY_HELPER_REPL         (1)
 #define MICROPY_HELPER_LEXER_UNIX   (0)
@@ -77,9 +77,6 @@ typedef long mp_off_t;
 
 // We need to provide a declaration/definition of alloca()
 #include <alloca.h>
-
-#define MICROPY_HW_BOARD_NAME "Raspberry Pi"
-#define MICROPY_HW_MCU_NAME "Arm 1176jzf-s"
 
 #define MP_STATE_PORT MP_STATE_VM
 

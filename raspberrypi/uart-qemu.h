@@ -1,17 +1,14 @@
 #ifndef UART_H
 #define UART_H
 
-//#include "types.h"
 #include <stdint.h>
 
 void uart_init();
-void print_buf(char *buf);
-void print_ch(char ch);
-uint32_t print_hex(uint32_t p);
-void volatile* print_ptr(void *p);
-void uart_write ( const char* str, uint32_t len );
-void uart_echo();
 
-extern struct uart_t volatile *uart;
+void uart_write ( const char* str, uint32_t len );
+uint32_t uart_getc(void);
+
+int mp_hal_stdin_rx_chr(void);
+void mp_hal_stdout_tx_strn(const char *str, mp_uint_t len);
 
 #endif
