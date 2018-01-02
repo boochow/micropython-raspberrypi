@@ -6,9 +6,9 @@ SECTIONS {
     .bss : { *(.bss COMMON) }
 	. = ALIGN(8);
     . = . + 0x1000;
-    heap_start = .;
+    _heap_start = .;
     . = . + 0x800000;
-    heap_end = .;
+    _heap_end = .;
     . = . + 0x800000;
-    stack_top = .;
+    _estack = .;
 }

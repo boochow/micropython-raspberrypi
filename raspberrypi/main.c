@@ -15,8 +15,6 @@
 #include "uart-qemu.h"
 #include "gpio.h"
 
-extern char heap_end, heap_start, stack_top;
-
 void do_str(const char *src, mp_parse_input_kind_t input_kind) {
     nlr_buf_t nlr;
     if (nlr_push(&nlr) == 0) {
@@ -33,47 +31,40 @@ void do_str(const char *src, mp_parse_input_kind_t input_kind) {
 }
 
 int main(int argc, char **argv) {
-    extern uint32_t _ebss;
-    extern uint32_t _sdata;
+extern char * _heap_end, _heap_start, _estack;
 
-    mp_stack_set_top(&stack_top);
-    mp_stack_set_limit(&heap_end);
+    mp_stack_set_top(&_estack);
+    mp_stack_set_limit(&_heap_end);
+    mp_stack_set_limit((char*)&_estack - (char*)&_heap_end - 1024);
 
     uart_init();
         
-    gc_init ( &heap_start, &heap_end );
+    while (true) {
+        gc_init (&_heap_start, &_heap_end );
 
-    mp_init();
+	mp_init();
 
-    do_str("for i in range(1):pass", MP_PARSE_FILE_INPUT);
+	do_str("for i in range(1):pass", MP_PARSE_FILE_INPUT);
 
-    for (;;) {
-      if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
-	if (pyexec_raw_repl() != 0) {
-	  break;
+	for (;;) {
+	    if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
+	        if (pyexec_raw_repl() != 0) {
+		    break;
+		}
+	    } else {
+	        if (pyexec_friendly_repl() != 0) {
+		    break;
+		}
+	    }
 	}
-      } else {
-	if (pyexec_friendly_repl() != 0) {
-	  break;
-	}
-      }
+        mp_deinit();
+        printf("PYB: soft reboot\n");
     }
-    
-    mp_deinit();
     return 0;
 }
 
 void gc_collect(void) {
 }
-
-/*
-void mp_hal_stdout_tx_strn_cooked(const char *str, size_t len) {
-  while(len > 0) {
-    print_ch(*str++);
-    len--;
-  }
-}
-*/
 
 mp_lexer_t *mp_lexer_new_from_file(const char *filename) {
     mp_raise_OSError(MP_ENOENT);
