@@ -2,16 +2,18 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "py/nlr.h"
 #include "py/compile.h"
 #include "py/runtime.h"
+#include "py/stackctrl.h"
 #include "py/repl.h"
-#include "py/mperrno.h"
 #include "py/gc.h"
+#include "py/mperrno.h"
+#include "lib/utils/interrupt_char.h"
+#include "lib/utils/pyexec.h"
 
-#include "uart.h"
+#include "uart-qemu.h"
 #include "gpio.h"
-
-extern char heap_end, heap_start;
 
 void do_str(const char *src, mp_parse_input_kind_t input_kind) {
     nlr_buf_t nlr;
@@ -28,27 +30,53 @@ void do_str(const char *src, mp_parse_input_kind_t input_kind) {
     }
 }
 
-int main(int argc, char **argv) {
-    pios_uart_init();
-    pios_uart_puts ("Hello World!\n\r");
-        
-    gc_init ( &heap_start, &heap_end );
+void clear_bss(void) {
+    extern void * _bss_start;
+    extern void *  _bss_end;
+    unsigned int *p;
 
-    mp_init();
-    do_str("print('Hello World')", MP_PARSE_FILE_INPUT);
-    do_str("i = 0\nwhile ( i < 10 ) :\n    print ( i );\n    i=i+1\n", MP_PARSE_FILE_INPUT);
-    
-    mp_deinit();
+    for(p = (unsigned int *)&_bss_start; p < (unsigned int *) &_bss_end; p++) {
+        *p = 0;
+    }
+}
+
+int main(int argc, char **argv) {
+    extern char * _heap_end;
+    extern char * _heap_start;
+    extern char * _estack;
+
+    clear_bss();
+    mp_stack_set_top(&_estack);
+    mp_stack_set_limit((char*)&_estack - (char*)&_heap_end - 1024);
+
+    uart_init();
+        
+    while (true) {
+        gc_init (&_heap_start, &_heap_end );
+
+	mp_init();
+
+	do_str("for i in range(1):pass", MP_PARSE_FILE_INPUT);
+
+	for (;;) {
+	    if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
+	        if (pyexec_raw_repl() != 0) {
+		    break;
+		}
+	    } else {
+	        if (pyexec_friendly_repl() != 0) {
+		    break;
+		}
+	    }
+	}
+        mp_deinit();
+        printf("PYB: soft reboot\n");
+    }
     return 0;
 }
 
 void gc_collect(void) {
 }
-
-void mp_hal_stdout_tx_strn_cooked(const char *str, size_t len) {
-    pios_uart_write ( str, len );
-}
-
 
 mp_lexer_t *mp_lexer_new_from_file(const char *filename) {
     mp_raise_OSError(MP_ENOENT);
