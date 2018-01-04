@@ -34,7 +34,6 @@ SRC_LIB = $(addprefix lib/,\
 SRC_C = \
 	main.c \
 	uart-qemu.c \
-	gpio.c \
 	mphalport.c \
 	lib/utils/stdout_helpers.c \
 	lib/utils/interrupt_char.c \
