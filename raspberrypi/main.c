@@ -30,13 +30,23 @@ void do_str(const char *src, mp_parse_input_kind_t input_kind) {
     }
 }
 
+void clear_bss(void) {
+    extern void * _bss_start;
+    extern void *  _bss_end;
+    unsigned int *p;
+
+    for(p = (unsigned int *)&_bss_start; p < (unsigned int *) &_bss_end; p++) {
+        *p = 0;
+    }
+}
+
 int main(int argc, char **argv) {
 extern char * _heap_end, _heap_start, _estack;
 
+    clear_bss();
     mp_stack_set_top(&_estack);
-    mp_stack_set_limit(&_heap_end);
     mp_stack_set_limit((char*)&_estack - (char*)&_heap_end - 1024);
-
+    
     uart_init();
         
     while (true) {
