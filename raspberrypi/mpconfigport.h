@@ -1,7 +1,5 @@
 #include <stdint.h>
 
-#include "board_QEMU.h"
-
 // options to control how MicroPython is built
 #define MICROPY_DEBUG_VERBOSE       (0)
 #define MICROPY_QSTR_BYTES_IN_HASH  (1)
@@ -61,12 +59,11 @@
 #define UINT_FMT "%u"
 #define INT_FMT "%d"
 
-typedef int32_t mp_int_t; // must be pointer size
-typedef uint32_t mp_uint_t; // must be pointer size
+typedef int mp_int_t; // must be pointer size
+typedef unsigned mp_uint_t; // must be pointer size
 typedef long mp_off_t;
 
 // dummy print
-//#define MP_PLAT_PRINT_STRN(str, len) uart_write(str, len)
 #define MP_PLAT_PRINT_STRN(str, len) mp_hal_stdout_tx_strn_cooked(str, len)
 
 #define MICROPY_PORT_BUILTIN_MODULES 
@@ -77,6 +74,9 @@ typedef long mp_off_t;
 
 // We need to provide a declaration/definition of alloca()
 #include <alloca.h>
+
+#define MICROPY_HW_BOARD_NAME        "Raspberry Pi"
+#define MICROPY_HW_MCU_NAME          "ARM1176JZF-S"
 
 #define MP_STATE_PORT MP_STATE_VM
 

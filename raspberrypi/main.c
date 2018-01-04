@@ -41,12 +41,14 @@ void clear_bss(void) {
 }
 
 int main(int argc, char **argv) {
-extern char * _heap_end, _heap_start, _estack;
+    extern char * _heap_end;
+    extern char * _heap_start;
+    extern char * _estack;
 
     clear_bss();
     mp_stack_set_top(&_estack);
     mp_stack_set_limit((char*)&_estack - (char*)&_heap_end - 1024);
-    
+
     uart_init();
         
     while (true) {
