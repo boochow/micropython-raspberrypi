@@ -43,28 +43,13 @@ void uart_init() {
 
 #else
 
+#include "gpio_registers.h"
+
 #define IOREG(X)  (*(volatile uint32_t *) (X))
 
-// GPIO registers
-#define GPFSEL0 IOREG(0x20200000)
-#define GPFSEL1 IOREG(0x20200004)
-#define GPFSEL2 IOREG(0x20200008)
-#define GPFSEL3 IOREG(0x2020000C)
-#define GPFSEL4 IOREG(0x20200010)
-#define GPFSEL5 IOREG(0x20200014)
-
-#define GPF_INPUT  0U
-#define GPF_OUTPUT 1U
-#define GPF_ALT_0  4U
-#define GPF_ALT_1  5U
-#define GPF_ALT_2  6U
-#define GPF_ALT_3  7U
-#define GPF_ALT_4  3U
-#define GPF_ALT_5  2U
-
 // Mini UART registers
-#define AUX_IRQ     IOREG(0x20215000)
-#define AUX_ENABLES IOREG(0x20215004)
+#define AUX_IRQ     0x20215000
+#define AUX_ENABLES 0x20215004
 
 // Mini UART data
 
@@ -91,11 +76,11 @@ struct uart_t volatile *uart = (struct uart_t volatile *) 0x20215040;
 
 void uart_init() {
     // set GPIO14, GPIO15 to pull down, alternate function 0
-    GPFSEL1 = (GPF_ALT_5 << (3*4)) | (GPF_ALT_5 << (3*5));
+    IOREG(GPFSEL1) = (GPF_ALT_5 << (3*4)) | (GPF_ALT_5 << (3*5));
 
     // UART basic settings
-    AUX_ENABLES = 1;
-    uart->CNTL = 0;   // mini uart disable
+    IOREG(AUX_ENABLES) = 1;
+    uart->CNTL = 0;   // disable mini uart
 
     uart->IER = 0;    // disable receive/transmit interrupts
     uart->IIR = 0xC6; // enable FIFO(0xC0), clear FIFO(0x06)
