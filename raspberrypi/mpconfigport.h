@@ -36,18 +36,19 @@
 #define MICROPY_PY_ARRAY            (0)
 #define MICROPY_PY_ATTRTUPLE        (0)
 #define MICROPY_PY_COLLECTIONS      (0)
-#define MICROPY_PY_MATH             (0)
+#define MICROPY_PY_MATH             (1)
 #define MICROPY_PY_CMATH            (0)
 #define MICROPY_PY_IO               (0)
 #define MICROPY_PY_STRUCT           (0)
 #define MICROPY_PY_SYS              (0)
+#define MICROPY_PY_MACHINE          (1)
 #define MICROPY_CPYTHON_COMPAT      (0)
-#define MICROPY_LONGINT_IMPL        (MICROPY_LONGINT_IMPL_NONE)
-#define MICROPY_FLOAT_IMPL          (MICROPY_FLOAT_IMPL_NONE)
+#define MICROPY_LONGINT_IMPL        (MICROPY_LONGINT_IMPL_MPZ)
+#define MICROPY_FLOAT_IMPL          (MICROPY_FLOAT_IMPL_FLOAT)
 #define MICROPY_USE_INTERNAL_PRINTF (1)
 
 #define MICROPY_REPL_AUTO_INDENT    (1)
-#define MICROPY_KBD_EXCEPTION       (0)
+#define MICROPY_KBD_EXCEPTION       (1)
 // type definitions for the specific machine
 
 #define malloc(n) m_malloc(n)
@@ -66,7 +67,11 @@ typedef long mp_off_t;
 // dummy print
 #define MP_PLAT_PRINT_STRN(str, len) mp_hal_stdout_tx_strn_cooked(str, len)
 
-#define MICROPY_PORT_BUILTIN_MODULES 
+extern const struct _mp_obj_module_t rpi_module;
+
+#define MICROPY_PORT_BUILTIN_MODULES                       \
+    { MP_ROM_QSTR(MP_QSTR_rpi), MP_ROM_PTR(&rpi_module) }, \
+        
 
 // extra built in names to add to the global namespace
 #define MICROPY_PORT_BUILTINS \

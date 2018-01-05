@@ -34,8 +34,10 @@ SRC_LIB = $(addprefix lib/,\
 SRC_C = \
 	main.c \
 	uart-qemu.c \
-	gpio.c \
 	mphalport.c \
+	modrpi.c \
+
+SRC_LIB = \
 	lib/utils/stdout_helpers.c \
 	lib/utils/interrupt_char.c \
 	lib/utils/pyexec.c \
@@ -70,6 +72,9 @@ SRC_C = \
 
 SRC_S = \
     start.s
+
+# List of sources for qstr extraction
+SRC_QSTR += $(SRC_C) $(SRC_LIB)
 
 OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o) $(SRC_S:.s=.o) $(SRC_LIB:.c=.o))
 
