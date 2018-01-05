@@ -47,7 +47,7 @@
 #define MICROPY_USE_INTERNAL_PRINTF (1)
 
 #define MICROPY_REPL_AUTO_INDENT    (1)
-#define MICROPY_KBD_EXCEPTION       (0)
+#define MICROPY_KBD_EXCEPTION       (1)
 // type definitions for the specific machine
 
 #define malloc(n) m_malloc(n)
