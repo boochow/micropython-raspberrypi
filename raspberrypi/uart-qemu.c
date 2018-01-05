@@ -45,8 +45,6 @@ void uart_init() {
 
 #include "gpio_registers.h"
 
-#define IOREG(X)  (*(volatile uint32_t *) (X))
-
 // Mini UART registers
 #define AUX_IRQ     0x20215000
 #define AUX_ENABLES 0x20215004

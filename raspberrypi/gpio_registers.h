@@ -1,3 +1,5 @@
+#define IOREG(X)  (*(volatile uint32_t *) (X))
+
 // GPIO registers
 
 #define GPFSEL0 0x20200000
