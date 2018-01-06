@@ -28,7 +28,7 @@ typedef struct uart_t {
 #define IS_TX_RDY (!(uart->FR & (1 << 5)))
 #define TX_CH(c)  (uart->DR = (c))
 
-volatile struct uart_t *uart = (volatile struct uart_t *)0x101f1000;
+volatile struct uart_t *uart = (volatile struct uart_t *) 0x101f1000;
 
 void uart_init() {
     uart->CR = 0;
@@ -74,7 +74,7 @@ struct uart_t volatile *uart = (struct uart_t volatile *) 0x20215040;
 
 void uart_init() {
     // set GPIO14, GPIO15 to pull down, alternate function 0
-    IOREG(GPFSEL1) = (GPF_ALT_5 << (3*4)) | (GPF_ALT_5 << (3*5));
+    IOREG(GPIO(GPFSEL1)) = (GPF_ALT_5 << (3*4)) | (GPF_ALT_5 << (3*5));
 
     // UART basic settings
     IOREG(AUX_ENABLES) = 1;
