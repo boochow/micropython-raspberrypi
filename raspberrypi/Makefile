@@ -35,7 +35,7 @@ SRC_C = \
 	main.c \
 	uart-qemu.c \
 	mphalport.c \
-	modrpi.c \
+	modmcu.c \
 
 SRC_LIB = \
 	lib/utils/stdout_helpers.c \
