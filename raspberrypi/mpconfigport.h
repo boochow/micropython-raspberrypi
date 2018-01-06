@@ -67,10 +67,10 @@ typedef long mp_off_t;
 // dummy print
 #define MP_PLAT_PRINT_STRN(str, len) mp_hal_stdout_tx_strn_cooked(str, len)
 
-extern const struct _mp_obj_module_t rpi_module;
+extern const struct _mp_obj_module_t mcu_module;
 
 #define MICROPY_PORT_BUILTIN_MODULES                       \
-    { MP_ROM_QSTR(MP_QSTR_rpi), MP_ROM_PTR(&rpi_module) }, \
+    { MP_ROM_QSTR(MP_QSTR_mcu), MP_ROM_PTR(&mcu_module) }, \
         
 
 // extra built in names to add to the global namespace
