@@ -1,5 +1,5 @@
 #define IOREG(X)  (*(volatile uint32_t *) (X))
-#define GPIO(X)   IOREG((X) + GPIO_BASE)
+#define GPIO(X)   ((X) + GPIO_BASE)
 
 // GPIO registers
 

@@ -74,7 +74,7 @@ struct uart_t volatile *uart = (struct uart_t volatile *) 0x20215040;
 
 void uart_init() {
     // set GPIO14, GPIO15 to pull down, alternate function 0
-    GPIO(GPFSEL1) = (GPF_ALT_5 << (3*4)) | (GPF_ALT_5 << (3*5));
+    IOREG(GPIO(GPFSEL1)) = (GPF_ALT_5 << (3*4)) | (GPF_ALT_5 << (3*5));
 
     // UART basic settings
     IOREG(AUX_ENABLES) = 1;
