@@ -1,6 +1,6 @@
 #include "bcm283x.h"
 
-#define GPIO_BASE IO_BASE_ADDRESS
+#define GPIO_BASE (0x200000 + IO_BASE)
 #define GPIO(X)   ((X) + GPIO_BASE)
 
 // GPIO registers
