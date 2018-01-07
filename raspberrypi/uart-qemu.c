@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include "py/mpconfig.h"
+#include "bcm283x.h"
 #include "uart-qemu.h"
 
 #if 0
@@ -46,8 +47,8 @@ void uart_init() {
 #include "gpio_registers.h"
 
 // Mini UART registers
-#define AUX_IRQ     0x20215000
-#define AUX_ENABLES 0x20215004
+#define AUX_IRQ     (0x215000 + IO_BASE)
+#define AUX_ENABLES (0x215004 + IO_BASE)
 
 // Mini UART data
 
@@ -70,7 +71,7 @@ typedef struct uart_t {
 #define IS_TX_RDY ((uart->LSR & 0x60) == 0x60)
 #define TX_CH(c)  (uart->IO = (c))
 
-struct uart_t volatile *uart = (struct uart_t volatile *) 0x20215040;
+struct uart_t volatile *uart = (struct uart_t volatile *) (0x215040 + IO_BASE);
 
 void uart_init() {
     // set GPIO14, GPIO15 to pull down, alternate function 0
