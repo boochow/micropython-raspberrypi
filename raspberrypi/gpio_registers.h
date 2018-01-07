@@ -1,11 +1,10 @@
-#include "bcm2835.h"
+#include "bcm283x.h"
 
-#define IOREG(X)  (*(volatile uint32_t *) (X))
+#define GPIO_BASE IO_BASE_ADDRESS
 #define GPIO(X)   ((X) + GPIO_BASE)
 
 // GPIO registers
 
-#define GPIO_BASE IO_BASE_ADDRESS
 #define GPFSEL0 0x00
 #define GPFSEL1 0x04
 #define GPFSEL2 0x08
