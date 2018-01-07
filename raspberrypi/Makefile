@@ -34,8 +34,11 @@ SRC_LIB = $(addprefix lib/,\
 SRC_C = \
 	main.c \
 	uart-qemu.c \
+	systick.c \
 	mphalport.c \
 	modmcu.c \
+	modutime.c \
+
 
 SRC_LIB = \
 	lib/utils/stdout_helpers.c \
@@ -69,6 +72,7 @@ SRC_LIB = \
 	lib/libm/atanf.c \
 	lib/libm/atan2f.c \
 	lib/mp-readline/readline.c \
+	lib/timeutils/timeutils.c \
 
 SRC_S = \
     start.s
