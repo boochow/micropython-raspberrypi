@@ -20,11 +20,15 @@ void mp_hal_delay_us(mp_uint_t us) {
     return;
 }
 
+mp_uint_t mp_hal_ticks_cpu(void) {
+    return systime();
+}
+
 mp_uint_t mp_hal_ticks_us(void) {
-    return systime() / 1000;
+    return systime();
 }
 
 mp_uint_t mp_hal_ticks_ms(void) {
-    return systime();
+    return systime() / 1000;
 }
 
