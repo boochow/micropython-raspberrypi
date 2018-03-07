@@ -1,0 +1,34 @@
+DIR := $(CONFIGDIR)
+
+ifeq ("$(CONFIG)", "DEBUG")
+	CFLAGS += -DDEBUG 
+else ifeq ("$(CONFIG)", "FINAL")
+	CFLAGS += -DFINAL
+	CFLAGS += -O2
+	CFLAGS += -Wno-strict-aliasing 
+else
+	CFLAGS += -DCONFIG_ERROR 
+endif
+
+ifeq ("$(TYPE)", "STANDALONE")
+	CFLAGS += -DTYPE_STANDALONE
+else ifeq ("$(TYPE)", "LOWLEVEL")
+	CFLAGS += -DTYPE_LOWLEVEL
+else ifeq ("$(TYPE)", "DRIVER")
+	CFLAGS += -DTYPE_DRIVER
+else
+	CFLAGS += -DTYPE_ERROR 
+endif
+
+ifeq ("$(TARGET)", "RPI")
+	include $(DIR)rpi.in
+else ifeq ("$(TARGET)", "NONE")
+	CFLAGS += -DTARGET_NONE 
+else
+	CFLAGS += -DTARGET_ERROR 
+endif
+
+LIB_HID ?= 1
+LIB_KBD ?= 1
+LIB_HUB ?= 1
+LIB_MOUSE ?= 1

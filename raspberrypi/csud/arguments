@@ -1,0 +1,41 @@
+CSUD makefile arguments:
+
+CONFIG=(DEBUG|FINAL)
+	DEBUG builds check more things, are more verbose, not optimise, etc.
+	FINAL builds are faster, quieter, optimised. (default)
+TYPE=(STANDALONE|LOWLEVEL|DRIVER)
+	STANDALONE builds have no external dependencies.
+	LOWLEVEL builds have few external dependencies. (default)
+	DRIVER builds have many external dependencies.
+TARGET=(RPI|NONE)
+	RPI builds for the Raspberry Pi. Libs: ARM_V6, BCM2835, DWC.
+	NONE builds for no system in particular. Libs: None. (default)
+GNU=*
+	Specifies the cross compiler to use e.g. 'arm-none-eabi-'. Default is blank.
+BUILD=*
+	Specifies the build directory. Default is 'build/'.
+SOURCE=*
+	Specifies the source directory. Default is 'source/'.
+CONFIGDIR=*
+	Specifies the configuration directory. Default is 'configuration/'.
+LIBNAME=*
+	Specifies the target library name. Default is 'libcsud.a'.
+INCDIR=*
+	Specifies the include directory. Default is 'include/'. Note, this is for 
+	the project headers, not system ones.
+LIB_HID=(0|1)
+	Enables or disables the HID driver. Default specified in 
+	configuration/makefile.in. 
+LIB_KBD=(0|1)
+	Enables or disables the Keyboard driver. Default specified in 
+	configuration/makefile.in. 
+LIB_HUB=(0|1)
+	Enables or disables the Hub driver. Default specified in 
+	configuration/makefile.in. 
+LIB_ARM_V6=(0|1)
+	Enables or disables the ARMv6 platform code. Default is TARGET dependant.
+LIB_BCM2835=(0|1)
+	Enables or disables the Broadcom2835 platform code. Default is TARGET 
+	dependant.
+LIB_DWC=(0|1)	
+	Enables or disables the DesignWare Core hcd. Default is TARGET dependant.

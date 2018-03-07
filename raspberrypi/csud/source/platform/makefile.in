@@ -1,0 +1,8 @@
+DIR := $(DIR)platform/
+
+OBJECTS += $(BUILD)platform.c.o
+
+$(BUILD)platform.c.o: $(DIR)platform.c $(INCDIR)platform/platform.h
+	$(GCC) $< -o $@
+
+include $(DIR)arm/makefile.in

@@ -1,0 +1,7 @@
+DIR := $(DIR)usbd/
+
+OBJECTS += $(BUILD)usbd.c.o
+
+$(BUILD)usbd.c.o: $(DIR)usbd.c $(INCDIR)hcd/hcd.h $(INCDIR)platform/platform.h $(INCDIR)usbd/descriptors.h $(INCDIR)usbd/usbd.h
+	$(GCC) $< -o $@
+	

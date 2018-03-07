@@ -1,0 +1,10 @@
+DIR := $(DIR)dwc/
+
+OBJECTS += $(BUILD)designware20.c.o
+OBJECTS += $(BUILD)roothub.c.o
+
+$(BUILD)designware20.c.o: $(DIR)designware20.c $(INCDIR)hcd/hcd.h $(INCDIR)usbd/device.h $(INCDIR)usbd/devicerequest.h $(INCDIR)usbd/pipe.h $(INCDIR)types.h
+	$(GCC) $< -o $@
+	
+$(BUILD)roothub.c.o: $(DIR)roothub.c $(INCDIR)device/hub.h $(INCDIR)hcd/hcd.h $(INCDIR)usbd/descriptors.h $(INCDIR)usbd/device.h $(INCDIR)usbd/devicerequest.h $(INCDIR)usbd/pipe.h $(INCDIR)types.h
+	$(GCC) $< -o $@

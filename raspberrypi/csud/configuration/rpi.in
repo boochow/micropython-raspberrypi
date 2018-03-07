@@ -1,0 +1,6 @@
+LIB_ARM_V6 ?= 1
+LIB_BCM2835 ?= 1
+LIB_DWC ?= 1
+CFLAGS += -DTARGET_RPI 
+CFLAGS += -Wa,-march=armv6
+CFLAGS += -Wa,-mcpu=arm1176jzf-s

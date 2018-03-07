@@ -1,0 +1,18 @@
+DIR := $(SOURCE)
+
+OBJECTS += $(BUILD)configuration.c.o
+
+$(BUILD)configuration.c.o: $(DIR)configuration.c
+	$(GCC) $< -o $@
+	
+DIR := $(SOURCE)
+include $(DIR)device/makefile.in
+
+DIR := $(SOURCE)
+include $(DIR)hcd/makefile.in
+
+DIR := $(SOURCE)
+include $(DIR)platform/makefile.in
+
+DIR := $(SOURCE)
+include $(DIR)usbd/makefile.in
