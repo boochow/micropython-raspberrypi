@@ -1,4 +1,7 @@
+BOARD ?= RPI1
+
 include ../micropython/py/mkenv.mk
+include mpconfigport.mk
 
 # qstr definitions (must come before including py.mk)
 QSTR_DEFS = qstrdefsport.h
@@ -9,6 +12,8 @@ include $(TOP)/py/py.mk
 CROSS_COMPILE = arm-none-eabi-
 
 OBJCPY=$(CROSS_COMPILE)objcopy
+
+
 INC += -I.
 INC += -I$(TOP)
 INC += -I$(BUILD)
@@ -82,12 +87,29 @@ SRC_QSTR += $(SRC_C) $(SRC_LIB)
 
 OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o) $(SRC_S:.s=.o) $(SRC_LIB:.c=.o))
 
+
+
+# USB
+ifneq ($(MICROPY_PY_USBHOST),0)
+USBHOST_DIR=csud
+CSUDLIB=libcsud.a
+INC += -I$(TOP)/$(USBHOST_DIR)/include
+CFLAGS_MOD += -DMICROPY_PY_USBHOST=$(MICROPY_PY_USBHOST)
+SRC_MOD += usbhost.c
+LIB += -lcsud
+
+$(BUILD)/$(CSUDLIB):
+	cd csud; $(MAKE) driver CONFIG=FINAL TYPE=DRIVER TARGET=RPI GNU=$(CROSS_COMPILE) BUILD=../$(BUILD)/ LIBNAME=../$(BUILD)/$(CSUDLIB)
+
+endif
+
+
 all: $(BUILD)/firmware.img
 
 list: $(BUILD)/firmware.elf
 	$(CROSS_COMPILE)objdump -d $(BUILD)/firmware.elf > $(BUILD)/firmware.list
 
-$(BUILD)/firmware.elf: $(OBJ)
+$(BUILD)/firmware.elf: $(OBJ) $(BUILD)/$(CSUDLIB)
 	$(ECHO) "LINK $@"
 	$(Q)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 	$(Q)$(SIZE) $@
@@ -113,3 +135,4 @@ run: $(BUILD)/firmware.elf
 	-redir tcp:10022::22
 
 include $(TOP)/py/mkrules.mk
+
