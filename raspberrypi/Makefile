@@ -93,7 +93,7 @@ OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o) $(SRC_S:.s=.o) $(SRC_LIB:.c=
 ifneq ($(MICROPY_PY_USBHOST),0)
 USBHOST_DIR=csud
 CSUDLIB=libcsud.a
-INC += -I$(TOP)/$(USBHOST_DIR)/include
+INC += -I$(USBHOST_DIR)/include
 CFLAGS_MOD += -DMICROPY_PY_USBHOST=$(MICROPY_PY_USBHOST)
 SRC_MOD += usbhost.c
 LIB += -lcsud
