@@ -22,8 +22,6 @@ typedef struct _hcd_globals_t {
     void *devices;
 } hcd_globals_t;
 
-static hcd_globals_t *hcd_globals;
-    
 void rpi_usb_host_init(void) {
     UsbInitialise();
     MP_STATE_PORT(hcd_globals) = m_new(hcd_globals_t, 1);
