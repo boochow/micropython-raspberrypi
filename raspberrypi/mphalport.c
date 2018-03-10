@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include "py/mpconfig.h"
 #include "systick.h"
+#include "uart-qemu.h"
 
 void mp_hal_delay_ms(mp_uint_t ms) {
     uint64_t end_time;
@@ -32,3 +33,13 @@ mp_uint_t mp_hal_ticks_ms(void) {
     return systime() / 1000;
 }
 
+
+// Receive single character
+int mp_hal_stdin_rx_chr(void) {
+    return uart_getc();
+}
+
+// Send string of given length
+void mp_hal_stdout_tx_strn(const char *str, mp_uint_t len) {
+    uart_write(str,len);
+}

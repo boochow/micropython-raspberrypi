@@ -116,13 +116,3 @@ uint32_t uart_getc(void) {
     c = RX_CH;
     return c & 0xffU;
 }
-
-// Receive single character
-int mp_hal_stdin_rx_chr(void) {
-    return uart_getc();
-}
-
-// Send string of given length
-void mp_hal_stdout_tx_strn(const char *str, mp_uint_t len) {
-    uart_write(str,len);
-}
