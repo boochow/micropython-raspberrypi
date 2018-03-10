@@ -82,27 +82,28 @@ SRC_LIB = \
 SRC_S = \
     start.s
 
-# List of sources for qstr extraction
-SRC_QSTR += $(SRC_C) $(SRC_LIB)
-
-OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o) $(SRC_S:.s=.o) $(SRC_LIB:.c=.o))
-
-
-
 # USB
 ifneq ($(MICROPY_PY_USBHOST),0)
 USBHOST_DIR=csud
 CSUDLIB=libcsud.a
 INC += -I$(USBHOST_DIR)/include
-CFLAGS_MOD += -DMICROPY_PY_USBHOST=$(MICROPY_PY_USBHOST)
-SRC_MOD += usbhost.c
+CFLAGS += -DMICROPY_PY_USBHOST=$(MICROPY_PY_USBHOST)
+SRC_MOD += usbhost.c \
+	usb.c \
+
 LIB += -lcsud
+LDFLAGS += -no-wchar-size-warning
 
 $(BUILD)/$(CSUDLIB):
-	$(MKDIR) $(BUILD)/$(USBHOST_DIR)
-	cd $(USBHOST_DIR); $(MAKE) driver CONFIG=FINAL TYPE=DRIVER TARGET=RPI GNU=$(CROSS_COMPILE) BUILD=../$(BUILD)/$(USBHOST_DIR)/ LIBNAME=../$(BUILD)/$(CSUDLIB)
+	$(MKDIR) -p $(BUILD)/$(USBHOST_DIR)
+	cd $(USBHOST_DIR); $(MAKE) driver CONFIG=FINAL TYPE=DRIVER TARGET=RPI GNU=$(CROSS_COMPILE) BUILD=../$(BUILD)/$(USBHOST_DIR)/ LIBNAME=../$(BUILD)/$(CSUDLIB) 
 
 endif
+
+# List of sources for qstr extraction
+SRC_QSTR += $(SRC_C) $(SRC_MOD) $(SRC_LIB)
+
+OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o) $(SRC_MOD:.c=.o) $(SRC_S:.s=.o) $(SRC_LIB:.c=.o))
 
 
 all: $(BUILD)/firmware.img

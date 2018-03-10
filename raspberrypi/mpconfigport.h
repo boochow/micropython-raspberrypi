@@ -88,4 +88,7 @@ extern const struct _mp_obj_module_t utime_module;
 #define MP_STATE_PORT MP_STATE_VM
 
 #define MICROPY_PORT_ROOT_POINTERS \
-    const char *readline_hist[8];
+    const char *readline_hist[8]; \
+    \
+    struct _hcd_globals_t *hcd_globals; \
+

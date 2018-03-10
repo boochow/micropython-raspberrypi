@@ -57,6 +57,9 @@ int main(int argc, char **argv) {
 
 	do_str("for i in range(1):pass", MP_PARSE_FILE_INPUT);
 
+#ifdef MICROPY_PY_USBHOST
+    rpi_usb_host_init();
+#endif
 	for (;;) {
 	    if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
 	        if (pyexec_raw_repl() != 0) {
