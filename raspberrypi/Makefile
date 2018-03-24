@@ -43,6 +43,7 @@ SRC_C = \
 	mphalport.c \
 	modmcu.c \
 	modutime.c \
+	modgpu.c \
 
 
 SRC_LIB = \
@@ -93,10 +94,11 @@ SRC_MOD += usbhost.c \
 
 LIB += -lcsud
 LDFLAGS += -no-wchar-size-warning
+USBLIB = $(BUILD)/$(CSUDLIB)
 
-$(BUILD)/$(CSUDLIB):
+$(USBLIB):
 	$(MKDIR) -p $(BUILD)/$(USBHOST_DIR)
-	cd $(USBHOST_DIR); $(MAKE) driver CONFIG=FINAL TYPE=DRIVER TARGET=RPI GNU=$(CROSS_COMPILE) BUILD=../$(BUILD)/$(USBHOST_DIR)/ LIBNAME=../$(BUILD)/$(CSUDLIB) 
+	cd $(USBHOST_DIR); $(MAKE) driver CONFIG=DEBUG TYPE=DRIVER TARGET=RPI GNU=$(CROSS_COMPILE) BUILD=../$(BUILD)/$(USBHOST_DIR)/ LIBNAME=../$(BUILD)/$(CSUDLIB) 
 
 endif
 
@@ -111,7 +113,7 @@ all: $(BUILD)/firmware.img
 list: $(BUILD)/firmware.elf
 	$(CROSS_COMPILE)objdump -d $(BUILD)/firmware.elf > $(BUILD)/firmware.list
 
-$(BUILD)/firmware.elf: $(OBJ) $(BUILD)/$(CSUDLIB)
+$(BUILD)/firmware.elf: $(OBJ) $(USBLIB)
 	$(ECHO) "LINK $@"
 	$(Q)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 	$(Q)$(SIZE) $@
