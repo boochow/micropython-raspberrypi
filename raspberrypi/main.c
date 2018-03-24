@@ -13,6 +13,7 @@
 #include "lib/utils/pyexec.h"
 
 #include "uart-qemu.h"
+#include "usbhost.h"
 
 void do_str(const char *src, mp_parse_input_kind_t input_kind) {
     nlr_buf_t nlr;
