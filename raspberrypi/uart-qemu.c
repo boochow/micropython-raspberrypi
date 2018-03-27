@@ -62,7 +62,7 @@ uint32_t uart0_getc(void) {
     c = RX_CH;
     return c & 0xffU;
 }
-/*
+
 #include "gpio_registers.h"
 
 // Mini UART registers
@@ -127,15 +127,15 @@ uint32_t mini_uart_getc(void) {
     c = RX_CH_MINI;
     return c & 0xffU;
 }
-*/
+
 static void (*_uart_putc)(char c);
 static uint32_t (*_uart_getc)(void);
 
 void uart_init(bool mini_uart) {
     if (mini_uart) {
-        /*        mini_uart_init();
+        mini_uart_init();
         _uart_putc = &mini_uart_putc;
-        _uart_getc = &mini_uart_getc;*/
+        _uart_getc = &mini_uart_getc;
     } else {
         uart0_init();
         _uart_putc = &uart0_putc;

@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     mp_stack_set_top(&_estack);
     mp_stack_set_limit((char*)&_estack - (char*)&_heap_end - 1024);
 
-    uart_init();
+    uart_init(false);
         
     while (true) {
         gc_init (&_heap_start, &_heap_end );
