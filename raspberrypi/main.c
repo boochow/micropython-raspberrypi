@@ -40,17 +40,45 @@ void clear_bss(void) {
     }
 }
 
+#define TAG_CMDLINE 0x54410009
+char *arm_boot_tag_cmdline(int32_t *ptr) {
+    int32_t datalen = *ptr;
+    int32_t tag = *(ptr + 1);
+
+    if (ptr != 0) {
+        while(tag) {
+            if (tag == TAG_CMDLINE) {
+                return (char *) (ptr + 2);
+            } else {
+                ptr += datalen;
+                datalen = *ptr;
+                tag = *(ptr + 1);
+            }
+        }
+    }
+    return NULL;
+}
+
 int main(int argc, char **argv) {
     extern char * _heap_end;
     extern char * _heap_start;
     extern char * _estack;
+    register int R2 __asm("r2");
+    int32_t r2_save;
 
+    r2_save = R2;
     clear_bss();
     mp_stack_set_top(&_estack);
     mp_stack_set_limit((char*)&_estack - (char*)&_heap_end - 1024);
 
-    uart_init(false);
-        
+    // use UART if arm boot tag holds "qemu" in cmdline else use Mini-UART.
+    if ((r2_save != 0) && \
+        (strcmp("qemu", arm_boot_tag_cmdline((int32_t *) r2_save)) == 0)) {
+        uart_init(false);
+    } else {
+        uart_init(true);
+    }
+         
     while (true) {
         gc_init (&_heap_start, &_heap_end );
 

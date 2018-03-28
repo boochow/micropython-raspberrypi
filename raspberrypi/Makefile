@@ -134,7 +134,7 @@ $(BUILD)/firmware-qemu.img: $(OBJ) $(USBLIB)
 run: $(BUILD)/firmware-qemu.img
 	@qemu-system-arm \
 	-kernel $< \
-	-initrd $< \
+	-append "qemu" \
 	-cpu arm1176 \
 	-M versatilepb \
 	-m 512 \
