@@ -126,12 +126,18 @@ $(BUILD)/config.txt: config-template.txt $(BUILD)/firmware.img
 	$(CP) $< $@
 	$(ECHO) "kernel=firmware.img" >> $@
 
-run: $(BUILD)/firmware.elf
+$(BUILD)/firmware-qemu.img: $(OBJ) $(USBLIB)
+	$(ECHO) "LINK $@"
+	$(Q)$(LD) --defsym=_load_addr=0x10000 $(LDFLAGS) -o $@.elf $^ $(LIBS)
+	$(OBJCPY) $@.elf -O binary $@
+
+run: $(BUILD)/firmware-qemu.img
 	@qemu-system-arm \
 	-kernel $< \
+	-initrd $< \
 	-cpu arm1176 \
 	-M versatilepb \
-	-m 256 \
+	-m 512 \
 	-no-reboot \
 	-nographic \
 	-monitor null \

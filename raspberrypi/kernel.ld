@@ -1,5 +1,5 @@
 SECTIONS {
-    . = 0x8000;
+    . = DEFINED(_load_addr) ? _load_addr : 0x8000;
     .init . : { *(.init) }
     . = ALIGN(4);
     
