@@ -77,6 +77,7 @@ extern const struct _mp_obj_module_t gpu_module;
     { MP_ROM_QSTR(MP_QSTR_mcu), MP_ROM_PTR(&mcu_module) }, \
     { MP_ROM_QSTR(MP_QSTR_utime), MP_ROM_PTR(&utime_module) }, \
     { MP_ROM_QSTR(MP_QSTR_gpu), MP_ROM_PTR(&gpu_module) }, \
+    { MP_ROM_QSTR(MP_QSTR_machine), MP_ROM_PTR(&mp_module_machine) }, \
 
 // extra built in names to add to the global namespace
 #define MICROPY_PORT_BUILTINS \
