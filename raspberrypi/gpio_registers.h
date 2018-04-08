@@ -1,3 +1,6 @@
+#ifndef MICROPY_INCLUDED_RPI_GPIO_REGISTERS_H
+#define MICROPY_INCLUDED_RPI_GPIO_REGISTERS_H
+
 #include "bcm283x.h"
 
 #define GPIO_BASE (0x200000 + IO_BASE)
@@ -44,3 +47,10 @@
 #define GPF_ALT_3  7U
 #define GPF_ALT_4  3U
 #define GPF_ALT_5  2U
+
+// GPIO Pull-Up/Pull-Down (GPPUD) values
+#define GPPUD_DISABLE 0U
+#define GPPUD_EN_UP   1U
+#define GPPUD_EN_DOWN 2U
+
+#endif // MICROPY_INCLUDED_RPI_GPIO_REGISTERS_H

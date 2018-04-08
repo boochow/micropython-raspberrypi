@@ -45,6 +45,7 @@ SRC_C = \
 	modutime.c \
 	modgpu.c \
 	modmachine.c \
+	machine_pin.c \
 
 
 SRC_LIB = \
