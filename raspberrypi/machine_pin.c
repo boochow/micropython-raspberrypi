@@ -108,14 +108,20 @@ static uint32_t gpio_get_level(uint32_t pin) {
     }
 }
 
+static inline void delay_cycles(int32_t count)
+{
+    __asm volatile("__delay_%=: subs %[count], %[count], #1; bne __delay_%=\n"
+                 : "=r"(count): [count]"0"(count) : "cc");
+}
+
 static void gpio_set_pull_mode(uint32_t pin, uint32_t pud) {
     uint32_t reg;
 
     IOREG(GPIO(GPPUD)) = pud;
-    mp_hal_delay_us(1);
+    delay_cycles(150);
     reg = GPPUDCLK0 + (pin >> 5) * 4;
     IOREG(GPIO(reg)) = 1 << (pin & 0x1f);
-    mp_hal_delay_us(1);
+    delay_cycles(150);
     IOREG(GPIO(GPPUD)) = 0;
     IOREG(GPIO(reg)) = 0;
 }
