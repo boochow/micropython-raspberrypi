@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "py/mpconfig.h"
+#include "py/obj.h"
 #include "systimer.h"
 #include "uart-qemu.h"
 #include "usb.h"

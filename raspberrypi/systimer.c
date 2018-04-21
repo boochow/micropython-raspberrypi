@@ -1,19 +1,8 @@
 #include <unistd.h>
-#include "py/mpconfig.h"
 #include "bcm283x.h"
 #include "systimer.h"
 
-typedef struct systimer_t {
-    uint32_t CS;
-    uint32_t CLO;
-    uint32_t CHI;
-    uint32_t C0;
-    uint32_t C1;
-    uint32_t C2;
-    uint32_t C3;
-} systimer_t;
-
-volatile systimer_t *systimer = (volatile systimer_t *)(IO_BASE + 0x3000);
+systimer_t *systimer = (systimer_t *) (IO_BASE + 0x3000);
 
 volatile uint64_t systime(void) {
     uint64_t t;
@@ -31,4 +20,3 @@ volatile uint64_t systime(void) {
     t += clo;
     return t;
 }
-
