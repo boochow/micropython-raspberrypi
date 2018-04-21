@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include "py/mpconfig.h"
 #include "bcm283x.h"
-#include "systick.h"
+#include "systimer.h"
 
 typedef struct systimer_t {
     uint32_t CS;
