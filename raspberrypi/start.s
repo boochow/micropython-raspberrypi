@@ -22,17 +22,7 @@ _start:
 
 	// jump to main
 	pop {r0}
-	bl main
-
-	/// enable unaligned support
-    push {r0, r1}
-    mrc p15, 0, r0, c1, c0, 0
-    ldr r1, =0x00400000     /// set bit 22 (U-bit)
-    orr r0, r1
-    mcr p15, 0, r0, c1, c0, 0
-	pop {r0, r1}
-
-    bl main
+	bl arm_main
 
 halt:
     b halt

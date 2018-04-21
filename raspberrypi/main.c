@@ -42,7 +42,7 @@ void clear_bss(void) {
 }
 
 #define TAG_CMDLINE 0x54410009
-char *arm_boot_tag_cmdline(int32_t *ptr) {
+char *arm_boot_tag_cmdline(const int32_t *ptr) {
     int32_t datalen = *ptr;
     int32_t tag = *(ptr + 1);
 
@@ -60,14 +60,11 @@ char *arm_boot_tag_cmdline(int32_t *ptr) {
     return NULL;
 }
 
-int main(uint32_t r0, uint32_t id, const int32_t *atag) {
+int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
     extern char * _heap_end;
     extern char * _heap_start;
     extern char * _estack;
-    //    register int R2 __asm("r2");
-    //    int32_t r2_save;
 
-    //    r2_save = R2;
     clear_bss();
     mp_stack_set_top(&_estack);
     mp_stack_set_limit((char*)&_estack - (char*)&_heap_end - 1024);
@@ -83,24 +80,24 @@ int main(uint32_t r0, uint32_t id, const int32_t *atag) {
     while (true) {
         gc_init (&_heap_start, &_heap_end );
 
-	mp_init();
-
-	do_str("for i in range(1):pass", MP_PARSE_FILE_INPUT);
+        mp_init();
+        
+        do_str("for i in range(1):pass", MP_PARSE_FILE_INPUT);
 
 #ifdef MICROPY_PY_USBHOST
-    rpi_usb_host_init();
+        rpi_usb_host_init();
 #endif
-	for (;;) {
-	    if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
-	        if (pyexec_raw_repl() != 0) {
-		    break;
-		}
-	    } else {
-	        if (pyexec_friendly_repl() != 0) {
-		    break;
-		}
-	    }
-	}
+        for (;;) {
+            if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
+                if (pyexec_raw_repl() != 0) {
+                    break;
+                }
+            } else {
+                if (pyexec_friendly_repl() != 0) {
+                    break;
+                }
+            }
+        }
         mp_deinit();
         printf("PYB: soft reboot\n");
     }
