@@ -46,6 +46,7 @@ SRC_C = \
 	modgpu.c \
 	modmachine.c \
 	machine_pin.c \
+	arm_exceptions.c \
 
 
 SRC_LIB = \

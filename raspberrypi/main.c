@@ -12,6 +12,7 @@
 #include "lib/utils/interrupt_char.h"
 #include "lib/utils/pyexec.h"
 
+#include "arm_exceptions.h"
 #include "uart-qemu.h"
 #include "usbhost.h"
 
@@ -77,6 +78,7 @@ int main(int argc, char **argv) {
         uart_init(false);
     } else {
         uart_init(true);
+        arm_exceptions_init();
     }
          
     while (true) {
