@@ -60,21 +60,20 @@ char *arm_boot_tag_cmdline(int32_t *ptr) {
     return NULL;
 }
 
-int main(int argc, char **argv) {
+int main(uint32_t r0, uint32_t id, const int32_t *atag) {
     extern char * _heap_end;
     extern char * _heap_start;
     extern char * _estack;
-    register int R2 __asm("r2");
-    int32_t r2_save;
+    //    register int R2 __asm("r2");
+    //    int32_t r2_save;
 
-    r2_save = R2;
+    //    r2_save = R2;
     clear_bss();
     mp_stack_set_top(&_estack);
     mp_stack_set_limit((char*)&_estack - (char*)&_heap_end - 1024);
 
     // use UART if arm boot tag holds "qemu" in cmdline else use Mini-UART.
-    if ((r2_save != 0) && \
-        (strcmp("qemu", arm_boot_tag_cmdline((int32_t *) r2_save)) == 0)) {
+    if (atag && (strcmp("qemu", arm_boot_tag_cmdline(atag)) == 0)) {
         uart_init(false);
     } else {
         uart_init(true);
