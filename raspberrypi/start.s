@@ -16,11 +16,6 @@ _start:
 	msr cpsr_c, r0
 	ldr sp, =0x4000
 
-	// set SVC_MODE stack
-	ldr r0, =0x000000d3
-	msr cpsr_c, r0
-    ldr sp, =_estack
-
 	// set mode to SVC_MODE
 	ldr r0, =0x000000d3
 	msr cpsr_c, r0
