@@ -47,6 +47,7 @@ SRC_C = \
 	modmachine.c \
 	machine_pin.c \
 	arm_exceptions.c \
+	machine_timer.c \
 
 
 SRC_LIB = \

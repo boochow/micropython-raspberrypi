@@ -13,7 +13,9 @@
 #include "lib/utils/pyexec.h"
 
 #include "arm_exceptions.h"
+#include "bcm283x_it.h"
 #include "uart-qemu.h"
+#include "systimer.h"
 #include "usbhost.h"
 
 void do_str(const char *src, mp_parse_input_kind_t input_kind) {
@@ -60,6 +62,8 @@ char *arm_boot_tag_cmdline(const int32_t *ptr) {
     return NULL;
 }
 
+extern void __attribute__((interrupt("IRQ"))) irq_timer(void);
+
 int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
     extern char * _heap_end;
     extern char * _heap_start;
@@ -74,7 +78,9 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         uart_init(false);
     } else {
         uart_init(true);
+        exception_vector.irq = irq_timer;
         arm_exceptions_init();
+        arm_irq_enable();
     }
          
     while (true) {

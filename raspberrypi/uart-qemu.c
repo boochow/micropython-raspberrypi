@@ -1,8 +1,5 @@
 #include <stdint.h>
 #include <stdbool.h>
-//#include <stdio.h>
-//#include <string.h>
-//#include <unistd.h>
 #include "py/mpconfig.h"
 #include "bcm283x.h"
 #include "uart-qemu.h"
@@ -123,6 +120,8 @@ uint32_t mini_uart_getc(void) {
     uint32_t c;
   
     while (!IS_RX_RDY_MINI) {
+        extern void mp_handle_pending(void);
+        mp_handle_pending();
     }
     c = RX_CH_MINI;
     return c & 0xffU;
