@@ -26,16 +26,6 @@ typedef struct _machine_timer_obj_t {
 
 static machine_timer_obj_t timer_root;
 
-void __attribute__((interrupt("IRQ"))) irq_timer(void) {
-    if (IRQ_PEND1 & IRQ_SYSTIMER(SYST_NUM)) {
-        if (timer_root.callback) {
-            mp_sched_schedule(timer_root.callback, &timer_root);
-        }
-        systimer->C[SYST_NUM] += timer_root.period;
-        systimer->CS |= (1 << SYST_NUM);
-    }
-}
-
 static void timer_enable(void) {
     if ((IRQ_ENABLE1 & IRQ_SYSTIMER(3)) == 0) {
         IRQ_ENABLE1 = IRQ_SYSTIMER(3);
@@ -45,6 +35,20 @@ static void timer_enable(void) {
 
 static void timer_disable(void) {
     IRQ_DISABLE1 = IRQ_SYSTIMER(3);
+}
+
+void __attribute__((interrupt("IRQ"))) irq_timer(void) {
+    if (IRQ_PEND1 & IRQ_SYSTIMER(SYST_NUM)) {
+        if (timer_root.callback) {
+            mp_sched_schedule(timer_root.callback, &timer_root);
+        }
+        if (timer_root.mode == PERIODIC) {
+            systimer->C[SYST_NUM] += timer_root.period;
+        } else {
+            timer_disable();
+        }
+        systimer->CS |= (1 << SYST_NUM);
+    }
 }
 
 STATIC mp_obj_t machine_timer_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
