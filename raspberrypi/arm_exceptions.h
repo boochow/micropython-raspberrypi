@@ -19,9 +19,15 @@ extern vector_table_t exception_vector;
 
 void arm_exceptions_init();
 
-inline void arm_enable_irq() {
+inline void arm_irq_enable() {
   __asm volatile("mrs r0, cpsr \n"
                  "bic r0, r0, #0x80 \n"
+                 "msr cpsr_c, r0 \n");
+}
+
+inline void arm_irq_disable() {
+  __asm volatile("mrs r0, cpsr \n"
+                 "orr r0, r0, #0x80 \n"
                  "msr cpsr_c, r0 \n");
 }
 
