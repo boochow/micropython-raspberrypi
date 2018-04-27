@@ -176,8 +176,7 @@ mp_obj_t mp_pin_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, 
     const machine_pin_obj_t *self = NULL;
     if (0 <= wanted_pin && wanted_pin < MP_ARRAY_SIZE(machine_pin_obj)) {
         self = (machine_pin_obj_t*)&machine_pin_obj[wanted_pin];
-    }
-    if (self == NULL || self->base.type == NULL) {
+    } else {
         mp_raise_ValueError("invalid pin");
     }
 
