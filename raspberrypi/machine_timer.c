@@ -151,12 +151,44 @@ STATIC mp_obj_t machine_timer_counter(size_t n_args, const mp_obj_t *args) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_timer_counter_obj, 1, 2, machine_timer_counter);
 
+/// \method period([value])
+/// Get or set the period of the timer.
+STATIC mp_obj_t machine_timer_period(size_t n_args, const mp_obj_t *args) {
+    machine_timer_obj_t *self = args[0];
+    if (n_args == 1) {
+        // get
+        return mp_obj_new_int_from_uint(self->period);
+    } else {
+        // set
+        self->period = mp_obj_get_int(args[1]);
+        return mp_const_none;
+    }
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_timer_period_obj, 1, 2, machine_timer_period);
+
+/// \method callback(fun)
+/// Set the function to be called when the timer triggers.
+/// `fun` is passed 1 argument, the timer object.
+STATIC mp_obj_t machine_timer_callback(mp_obj_t self_in, mp_obj_t callback) {
+    machine_timer_obj_t *self = self_in;
+    if (callback == mp_const_none) {
+        self->callback = mp_const_none;
+    } else if (mp_obj_is_callable(callback)) {
+        self->callback = callback;
+    } else {
+        mp_raise_ValueError("callback must be None or a callable object");
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_timer_callback_obj, machine_timer_callback);
 
 STATIC const mp_rom_map_elem_t machine_timer_locals_table[] = {
     // instance methods
     { MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&machine_timer_init_obj) },
     { MP_ROM_QSTR(MP_QSTR_deinit), MP_ROM_PTR(&machine_timer_deinit_obj) },
     { MP_ROM_QSTR(MP_QSTR_counter), MP_ROM_PTR(&machine_timer_counter_obj) },
+    { MP_ROM_QSTR(MP_QSTR_period), MP_ROM_PTR(&machine_timer_period_obj) },
+    { MP_ROM_QSTR(MP_QSTR_callback), MP_ROM_PTR(&machine_timer_callback_obj) },
 
     // class constants
     { MP_ROM_QSTR(MP_QSTR_ONE_SHOT), MP_ROM_INT((int) ONE_SHOT) },
