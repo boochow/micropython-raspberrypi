@@ -8,9 +8,15 @@
 #include "systimer.h"
 #include "bcm283x_it.h"
 
+/*
+   if mode of a timer is FREE, MicroPython will 
+   never change the timer compare register.
+   (But it would be updated by VCORE.)
+ */
 typedef enum _timer_mode_t {
     ONE_SHOT = 0,
     PERIODIC = 1,
+    FREE     = 2,
 } timer_mode_t;
 
 typedef struct _machine_timer_obj_t {
@@ -24,16 +30,18 @@ typedef struct _machine_timer_obj_t {
 } machine_timer_obj_t;
 
 static machine_timer_obj_t machine_timer_obj[] = {
-    {{&machine_timer_type}, 0, true, 0, 0, PERIODIC, NULL},
+    {{&machine_timer_type}, 0, true, 0, 0, FREE, NULL},
     {{&machine_timer_type}, 1, false, 0, 0, PERIODIC, NULL},
-    {{&machine_timer_type}, 2, true, 0, 0, PERIODIC, NULL},
+    {{&machine_timer_type}, 2, true, 0, 0, FREE, NULL},
     {{&machine_timer_type}, 3, false, 0, 0, PERIODIC, NULL},
 };
 
 static void timer_enable(const int num) {
     if ((IRQ_ENABLE1 & IRQ_SYSTIMER(num)) == 0) {
         IRQ_ENABLE1 = IRQ_SYSTIMER(num);
-        systimer->C[num] = systimer->CLO + machine_timer_obj[num].period;
+        if (machine_timer_obj[num].mode != FREE) {
+            systimer->C[num] = systimer->CLO + machine_timer_obj[num].period;
+        }
         machine_timer_obj[num].active = true;
     }
 }
@@ -68,7 +76,7 @@ void __attribute__((interrupt("IRQ"))) irq_timer(void) {
                 }
                 if (tim[i].mode == PERIODIC) {
                     systimer->C[i] += tim[i].period;
-                } else {
+                } else if (tim[i].mode == ONE_SHOT) {
                     timer_disable(i);
                 }
             }
@@ -122,20 +130,38 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_timer_deinit_obj, machine_timer_deinit)
 STATIC void machine_timer_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     machine_timer_obj_t *self = self_in;
     if (self->active) {
-        mp_printf(print, "Timer(%u); period=%u, mode=%u, counter=%u", self->id, self->period, self->mode, self->counter);
+        mp_printf(print, "Timer(%u); period=%u, mode=%u, counter=%u, compare_reg = %u", self->id, self->period, self->mode, self->counter, systimer->C[self->id]);
     } else {
         mp_printf(print, "Timer(%u); *inactive*", self->id);
     }
 }
 
+/// \method counter([value])
+/// Get or set the timer counter.
+STATIC mp_obj_t machine_timer_counter(size_t n_args, const mp_obj_t *args) {
+    machine_timer_obj_t *self = args[0];
+    if (n_args == 1) {
+        // get
+        return mp_obj_new_int(self->counter);
+    } else {
+        // set
+        self->counter = mp_obj_get_int(args[1]);
+        return mp_const_none;
+    }
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_timer_counter_obj, 1, 2, machine_timer_counter);
+
+
 STATIC const mp_rom_map_elem_t machine_timer_locals_table[] = {
     // instance methods
     { MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&machine_timer_init_obj) },
     { MP_ROM_QSTR(MP_QSTR_deinit), MP_ROM_PTR(&machine_timer_deinit_obj) },
+    { MP_ROM_QSTR(MP_QSTR_counter), MP_ROM_PTR(&machine_timer_counter_obj) },
 
     // class constants
-    { MP_ROM_QSTR(MP_QSTR_ONE_SHOT), MP_ROM_INT(false) },
-    { MP_ROM_QSTR(MP_QSTR_PERIODIC), MP_ROM_INT(true) },
+    { MP_ROM_QSTR(MP_QSTR_ONE_SHOT), MP_ROM_INT((int) ONE_SHOT) },
+    { MP_ROM_QSTR(MP_QSTR_PERIODIC), MP_ROM_INT((int) PERIODIC) },
+    { MP_ROM_QSTR(MP_QSTR_FREE), MP_ROM_INT((int) FREE) },
 };
 STATIC MP_DEFINE_CONST_DICT(machine_timer_locals, machine_timer_locals_table);
 
