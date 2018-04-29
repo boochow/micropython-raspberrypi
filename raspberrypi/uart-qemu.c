@@ -60,7 +60,7 @@ uint32_t uart0_getc(void) {
     return c & 0xffU;
 }
 
-#include "gpio_registers.h"
+#include "bcm283x_gpio.h"
 
 // Mini UART registers
 #define AUX_IRQ     (0x215000 + IO_BASE)

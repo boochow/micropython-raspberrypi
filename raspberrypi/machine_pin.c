@@ -2,9 +2,9 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "gpio_registers.h"
 #include "py/runtime.h"
 #include "py/mphal.h"
+#include "bcm283x_gpio.h"
 #include "modmachine.h"
 #include "extmod/virtpin.h"
 

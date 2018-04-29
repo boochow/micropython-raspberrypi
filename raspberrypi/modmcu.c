@@ -4,7 +4,7 @@
 #include "py/obj.h"
 #include "py/objint.h"
 #include "extmod/machine_mem.h"
-#include "gpio_registers.h"
+#include "bcm283x_gpio.h"
 
 STATIC const mp_rom_map_elem_t mcu_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_mcu) },
