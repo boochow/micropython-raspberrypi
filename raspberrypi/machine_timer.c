@@ -38,10 +38,11 @@ static machine_timer_obj_t machine_timer_obj[] = {
 
 static void timer_enable(const int num) {
     if ((IRQ_ENABLE1 & IRQ_SYSTIMER(num)) == 0) {
+        machine_timer_obj[num].active = true;
         if (machine_timer_obj[num].mode != FREE) {
             systimer->C[num] = systimer->CLO + machine_timer_obj[num].period;
         }
-        machine_timer_obj[num].active = true;
+        systimer->CS |= (1 << num);
         IRQ_ENABLE1 = IRQ_SYSTIMER(num);
     }
 }
