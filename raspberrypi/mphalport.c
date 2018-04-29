@@ -120,12 +120,17 @@ int usb_keyboard_getc() {
 int mp_hal_stdin_rx_chr(void) {
 #ifdef MICROPY_PY_USBHOST
     int result;
-    while ((result = usb_keyboard_getc()) == 0) {
-        mp_hal_delay_ms(5);
+    for(;;) {
+        if (result = usb_keyboard_getc()) {
+            return result;
+        }
+        if (uart_rx_state()) {
+            return uart_getc();
+        }
     }
-    return result;
-#endif
+#else
     return uart_getc();
+#endif
 }
 
 // Send string of given length

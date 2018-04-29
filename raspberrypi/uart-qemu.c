@@ -60,6 +60,10 @@ uint32_t uart0_getc(void) {
     return c & 0xffU;
 }
 
+uint32_t uart0_rx_state(void) {
+    return IS_RX_RDY;
+}
+
 #include "bcm283x_gpio.h"
 
 // Mini UART registers
@@ -127,18 +131,25 @@ uint32_t mini_uart_getc(void) {
     return c & 0xffU;
 }
 
+uint32_t mini_uart_rx_state(void) {
+    return IS_RX_RDY_MINI;
+}
+
 static void (*_uart_putc)(char c);
 static uint32_t (*_uart_getc)(void);
+static uint32_t (*_uart_rx_state)(void);
 
 void uart_init(bool mini_uart) {
     if (mini_uart) {
         mini_uart_init();
         _uart_putc = &mini_uart_putc;
         _uart_getc = &mini_uart_getc;
+        _uart_rx_state = &mini_uart_rx_state;
     } else {
         uart0_init();
         _uart_putc = &uart0_putc;
         _uart_getc = &uart0_getc;
+        _uart_rx_state = &uart0_rx_state;
     }
 }
 
@@ -156,3 +167,6 @@ void uart_write (const char* str, uint32_t len) {
     }
 }
 
+uint32_t uart_rx_state(void) {
+    return _uart_rx_state();
+}
