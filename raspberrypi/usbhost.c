@@ -1,9 +1,10 @@
+#include <stdio.h>
+#include <string.h>
 #include "usbd/usbd.h"
-#include <stdbool.h>
+
+#include "py/runtime.h"
 #include "mphalport.h"
 #include "usbhost.h"
-#include <string.h>
-#include "py/runtime.h"
 
 /* USB host controller driver static variables */
 // memory block for these variables are allocated using
@@ -43,6 +44,10 @@ void rpi_usb_host_deinit(void) {
 
 /* platform dependent functions called from functions in libcsud.a */
 // defined in csud/include/platform/platform.h
+
+void LogPrint(const char* message, uint32_t messageLength) {
+    printf(message);
+}
 
 void* MemoryReserve(u32 length, void* physicalAddress) {
     return physicalAddress;

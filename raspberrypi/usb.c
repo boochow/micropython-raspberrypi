@@ -1,23 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdarg.h>
 
-#include "py/objstr.h"
 #include "py/runtime.h"
-#include "py/stream.h"
-#include "py/mperrno.h"
-#include "py/mphal.h"
-
 #include "usb.h"
 #include "usbhost.h"
-
-/* platform dependent functions called from functions in libcsud.a */
-// defined in csud/include/platform/platform.h
-
-void LogPrint(const char* message, uint32_t messageLength) {
-    printf(message);
-}
-
 
 
 // this will be persistent across a soft-reset
