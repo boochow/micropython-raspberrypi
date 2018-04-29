@@ -1,0 +1,87 @@
+CSUD - Chadderz's Simple USB Driver 
+	by Alex Chadwick
+
+A USB driver originally written for the raspberry pi (which uses a DesignWare� 
+Hi-Speed USB 2.0 On-The-Go (HS OTG) Controller), to be integrated into any
+operating system with appropriate wrappers.
+
+The USB standard is prohibitively long and difficult to read, and so this 
+driver was created to allow those working in Operating Systems development to
+achieve USB support, primarily in order to gain access to the keyboard, as this
+is the only sensible input on the Raspberry Pi. CSUD is designed to function 
+either as a standalone code section with no external dependencies, or as a more
+typical driver, with external dependencies. CSUD itself is modular, and so 
+could have components exchanged or replaced.
+
+CSUD is broken down into a few drivers:
+	* Generic USB driver (usbd) - manages parts of USB that do not change per 
+			system, for example device enumeration and configuration. Provides 
+			a standard interface to the environment specific host controller.
+	* Host Controller driver (hcd) - environment specific driver that handles
+			communication with the physical universal serial bus. No generic 
+			hcd exists, instead a common header file is used for any hcd to
+			allow the usbd to interact in a generic way. The hcd should 
+			translate between this interface and the physical hardware.
+	* DesignWare Core (dwc) driver - a specific hcd for the Synopsis DesignWare
+			Core host controller.
+	* Hub driver - driver for hubs, one of the most fundamental devices to USB.
+			Hubs allow multiple devices to utilise a single port, and many 
+			devices are abstracted into hubs. The hub driver is almost 
+			complete, lacking only features pertaining to interrupt transfers.
+			Built on top of the usbd.
+	* Human Interface Device (hid) driver - Driver supporting the generic 
+			USB hid standard, which allows communication with logging and 
+			sensing devices. Built on top of the usbd.
+	* Keyboard (kbd) driver - Driver supporting communication with keyboards.
+			Built on top of the hid driver, as USB keyboards are a specific
+			subset of hid devices. Does not have interrupt transfers, limiting
+			support severely (6/12 keyboards tested functioned correctly).
+	* Mouse driver - Driver supporting communication with mice. By Steve White.
+			Built on top of the hid driver, as USB mice are a specific subset
+			of hid devices. Does not have interrupt transfers, unknown how well
+			supported it is.
+
+At present, only USB control transfers are supported by the hcd and usbd, which
+is very limiting. Supporting interrupt transfers would be a major benefit, as 
+most devices require at least these two.
+
+In order to achieve wider support, the /configuration has a number of makefile
+include scripts which can configure the build. The overall makefile also 
+supports a number of arguments. The arguments are outlined in the file 
+arguments.
+
+Since the driver can be standalone, the code in /source/platform.c provides an 
+interface to 'system' routines. Thus, it implements many methods which are
+standardised, such as malloc, memcpy, free, print; though these are 
+deliberately not named as such. This is to avoid conflict with alternative 
+definitions should the need arise. Normally, it is perfectly acceptable to 
+write a wrapper which simply calls these functions when the equivalent is 
+invoked. For compatibility, print uses both the null termination convention, 
+and passes the length as an additional argument.
+
+The mapping between standard methods and platform.c's version is as follows:
+malloc	<-> MemoryAllocate
+free	<-> MemoryDeallocate
+memcpy	<-> MemoryCopy
+print	<-> LogPrint
+
+The file structure of the CSUD is as follows:
+	configuration/ makefile scripts for changing CSUD's build configuration.
+	include/ included header files.
+		device/ header files for device drivers
+			hid/ header files for human interface devices.
+		hcd/ header files for the host controller driver.
+			dwc/ header files for the DesignWare core.
+		platform/ header files for the system CSUD runs in.
+			arm/ header files for ARM platforms.
+			none/ header files for generic platforms.
+		usbd/ header files for the generic USB driver.
+
+	source/ source code files.
+		device/ source code for device drivers
+			hid/ source code for human interface device drivers.
+		hcd/ source code for the host controller driver
+			dwc/ source code for the DesignWare host controller
+		platform/ source code for the system CSUD runs in.
+			arm/ source code for ARM platforms.
+		usbd/ source code for the generic USB driver.

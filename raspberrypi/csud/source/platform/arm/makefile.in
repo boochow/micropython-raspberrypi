@@ -1,0 +1,14 @@
+DIR := $(DIR)arm/
+
+ifeq ("$(LIB_BCM2835)", "1")
+OBJECTS += $(BUILD)broadcom2835.c.o
+
+$(BUILD)broadcom2835.c.o: $(DIR)broadcom2835.c $(INCDIR)configuration.h $(INCDIR)types.h $(INCDIR)platform/platform.h
+	$(GCC) $< -o $@
+endif
+ifeq ("$(LIB_ARM_V6)", "1")
+OBJECTS += $(BUILD)armv6.c.o
+
+$(BUILD)armv6.c.o: $(DIR)armv6.c $(INCDIR)configuration.h $(INCDIR)types.h $(INCDIR)platform/platform.h
+	$(GCC) $< -o $@
+endif

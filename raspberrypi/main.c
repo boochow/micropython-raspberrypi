@@ -12,7 +12,10 @@
 #include "lib/utils/interrupt_char.h"
 #include "lib/utils/pyexec.h"
 
+#include "arm_exceptions.h"
+#include "rpi.h"
 #include "uart-qemu.h"
+#include "usbhost.h"
 
 void do_str(const char *src, mp_parse_input_kind_t input_kind) {
     nlr_buf_t nlr;
@@ -39,7 +42,30 @@ void clear_bss(void) {
     }
 }
 
-int main(int argc, char **argv) {
+#define TAG_CMDLINE 0x54410009
+char *arm_boot_tag_cmdline(const int32_t *ptr) {
+    int32_t datalen = *ptr;
+    int32_t tag = *(ptr + 1);
+
+    if (ptr != 0) {
+        while(tag) {
+            if (tag == TAG_CMDLINE) {
+                return (char *) (ptr + 2);
+            } else {
+                ptr += datalen;
+                datalen = *ptr;
+                tag = *(ptr + 1);
+            }
+        }
+    }
+    return NULL;
+}
+
+extern void __attribute__((interrupt("IRQ"))) irq_timer(void);
+
+int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
+    bool use_qemu = false;
+    
     extern char * _heap_end;
     extern char * _heap_start;
     extern char * _estack;
@@ -48,26 +74,42 @@ int main(int argc, char **argv) {
     mp_stack_set_top(&_estack);
     mp_stack_set_limit((char*)&_estack - (char*)&_heap_end - 1024);
 
-    uart_init();
-        
+    if (atag && (strcmp("qemu", arm_boot_tag_cmdline(atag)) == 0)) {
+        use_qemu = true;
+    }
+
+    // use UART if arm boot tag holds "qemu" in cmdline else use Mini-UART.
+    uart_init(!use_qemu);
+
+    if (!use_qemu) {
+        exception_vector.irq = irq_timer;
+        arm_exceptions_init();
+        arm_irq_enable();
+    }
+         
     while (true) {
         gc_init (&_heap_start, &_heap_end );
 
-	mp_init();
+        mp_init();
+        
+        do_str("for i in range(1):pass", MP_PARSE_FILE_INPUT);
 
-	do_str("for i in range(1):pass", MP_PARSE_FILE_INPUT);
-
-	for (;;) {
-	    if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
-	        if (pyexec_raw_repl() != 0) {
-		    break;
-		}
-	    } else {
-	        if (pyexec_friendly_repl() != 0) {
-		    break;
-		}
-	    }
-	}
+#ifdef MICROPY_PY_USBHOST
+        if (!use_qemu) {
+            rpi_usb_host_init();
+        }
+#endif
+        for (;;) {
+            if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
+                if (pyexec_raw_repl() != 0) {
+                    break;
+                }
+            } else {
+                if (pyexec_friendly_repl() != 0) {
+                    break;
+                }
+            }
+        }
         mp_deinit();
         printf("PYB: soft reboot\n");
     }

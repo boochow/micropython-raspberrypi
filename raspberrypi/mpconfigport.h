@@ -31,6 +31,9 @@
 #define MICROPY_PY_BUILTINS_SET     (0)
 #define MICROPY_PY_BUILTINS_SLICE   (1)
 #define MICROPY_PY_BUILTINS_PROPERTY (0)
+#define MICROPY_PY_BUILTINS_HELP    (1)
+//#define MICROPY_PY_BUILTINS_HELP_TEXT rpi_help_text
+#define MICROPY_PY_BUILTINS_HELP_MODULES (1)
 #define MICROPY_PY___FILE__         (0)
 #define MICROPY_PY_GC               (0)
 #define MICROPY_PY_ARRAY            (1)
@@ -46,7 +49,11 @@
 #define MICROPY_CPYTHON_COMPAT      (0)
 #define MICROPY_LONGINT_IMPL        (MICROPY_LONGINT_IMPL_MPZ)
 #define MICROPY_FLOAT_IMPL          (MICROPY_FLOAT_IMPL_FLOAT)
+#define MICROPY_MODULE_WEAK_LINKS   (1)
 #define MICROPY_USE_INTERNAL_PRINTF (1)
+#define MICROPY_PY_FRAMEBUF         (1)
+#define MICROPY_ENABLE_SCHEDULER    (1)
+#define MICROPY_SCHEDULER_DEPTH     (8)
 
 #define MICROPY_REPL_AUTO_INDENT    (1)
 #define MICROPY_KBD_EXCEPTION       (1)
@@ -70,10 +77,16 @@ typedef long mp_off_t;
 
 extern const struct _mp_obj_module_t mcu_module;
 extern const struct _mp_obj_module_t utime_module;
+extern const struct _mp_obj_module_t gpu_module;
 
 #define MICROPY_PORT_BUILTIN_MODULES                       \
     { MP_ROM_QSTR(MP_QSTR_mcu), MP_ROM_PTR(&mcu_module) }, \
     { MP_ROM_QSTR(MP_QSTR_utime), MP_ROM_PTR(&utime_module) }, \
+    { MP_ROM_QSTR(MP_QSTR_gpu), MP_ROM_PTR(&gpu_module) }, \
+    { MP_ROM_QSTR(MP_QSTR_machine), MP_ROM_PTR(&mp_module_machine) }, \
+
+#define MICROPY_PORT_BUILTIN_MODULE_WEAK_LINKS \
+    { MP_ROM_QSTR(MP_QSTR_time), MP_ROM_PTR(&utime_module) }, \
 
 // extra built in names to add to the global namespace
 #define MICROPY_PORT_BUILTINS \
@@ -88,4 +101,7 @@ extern const struct _mp_obj_module_t utime_module;
 #define MP_STATE_PORT MP_STATE_VM
 
 #define MICROPY_PORT_ROOT_POINTERS \
-    const char *readline_hist[8];
+    const char *readline_hist[8]; \
+    \
+    struct _hcd_globals_t *hcd_globals; \
+

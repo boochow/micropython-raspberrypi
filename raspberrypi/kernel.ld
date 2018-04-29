@@ -1,5 +1,5 @@
 SECTIONS {
-    . = 0x8000;
+    . = DEFINED(_load_addr) ? _load_addr : 0x8000;
     .init . : { *(.init) }
     . = ALIGN(4);
     
@@ -16,9 +16,9 @@ SECTIONS {
     
     . = . + 0x1000;
     _heap_start = .;
-    . = . + 0x800000;
+    . = . + 0x8000000;
     _heap_end = .;
     
-    . = . + 0x800000;
+    . = . + 0x7F00000;
     _estack = .;
 }

@@ -1,4 +1,7 @@
+BOARD ?= RPI1
+
 include ../micropython/py/mkenv.mk
+include mpconfigport.mk
 
 # qstr definitions (must come before including py.mk)
 QSTR_DEFS = qstrdefsport.h
@@ -9,6 +12,8 @@ include $(TOP)/py/py.mk
 CROSS_COMPILE = arm-none-eabi-
 
 OBJCPY=$(CROSS_COMPILE)objcopy
+
+
 INC += -I.
 INC += -I$(TOP)
 INC += -I$(BUILD)
@@ -34,10 +39,15 @@ SRC_LIB = $(addprefix lib/,\
 SRC_C = \
 	main.c \
 	uart-qemu.c \
-	systick.c \
+	rpi.c \
 	mphalport.c \
 	modmcu.c \
 	modutime.c \
+	modgpu.c \
+	modmachine.c \
+	machine_pin.c \
+	arm_exceptions.c \
+	machine_timer.c \
 
 
 SRC_LIB = \
@@ -77,17 +87,37 @@ SRC_LIB = \
 SRC_S = \
     start.s
 
-# List of sources for qstr extraction
-SRC_QSTR += $(SRC_C) $(SRC_LIB)
+# USB
+ifneq ($(MICROPY_PY_USBHOST),0)
+USBHOST_DIR=csud
+CSUDLIB=libcsud.a
+INC += -I$(USBHOST_DIR)/include
+CFLAGS += -DMICROPY_PY_USBHOST=$(MICROPY_PY_USBHOST)
+SRC_MOD += usbhost.c \
+	usb.c \
 
-OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o) $(SRC_S:.s=.o) $(SRC_LIB:.c=.o))
+LIB += -lcsud
+LDFLAGS += -no-wchar-size-warning
+USBLIB = $(BUILD)/$(CSUDLIB)
+
+$(USBLIB):
+	$(MKDIR) -p $(BUILD)/$(USBHOST_DIR)
+	cd $(USBHOST_DIR); $(MAKE) driver CONFIG=DEBUG TYPE=DRIVER TARGET=RPI GNU=$(CROSS_COMPILE) BUILD=../$(BUILD)/$(USBHOST_DIR)/ LIBNAME=../$(BUILD)/$(CSUDLIB) 
+
+endif
+
+# List of sources for qstr extraction
+SRC_QSTR += $(SRC_C) $(SRC_MOD) $(SRC_LIB)
+
+OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o) $(SRC_MOD:.c=.o) $(SRC_S:.s=.o) $(SRC_LIB:.c=.o))
+
 
 all: $(BUILD)/firmware.img
 
 list: $(BUILD)/firmware.elf
 	$(CROSS_COMPILE)objdump -d $(BUILD)/firmware.elf > $(BUILD)/firmware.list
 
-$(BUILD)/firmware.elf: $(OBJ)
+$(BUILD)/firmware.elf: $(OBJ) $(USBLIB)
 	$(ECHO) "LINK $@"
 	$(Q)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 	$(Q)$(SIZE) $@
@@ -100,12 +130,18 @@ $(BUILD)/config.txt: config-template.txt $(BUILD)/firmware.img
 	$(CP) $< $@
 	$(ECHO) "kernel=firmware.img" >> $@
 
-run: $(BUILD)/firmware.elf
+$(BUILD)/firmware-qemu.img: $(OBJ) $(USBLIB)
+	$(ECHO) "LINK $@"
+	$(Q)$(LD) --defsym=_load_addr=0x10000 $(LDFLAGS) -o $@.elf $^ $(LIBS)
+	$(OBJCPY) $@.elf -O binary $@
+
+run: $(BUILD)/firmware-qemu.img
 	@qemu-system-arm \
 	-kernel $< \
+	-append "qemu" \
 	-cpu arm1176 \
 	-M versatilepb \
-	-m 256 \
+	-m 512 \
 	-no-reboot \
 	-nographic \
 	-monitor null \
@@ -113,3 +149,4 @@ run: $(BUILD)/firmware.elf
 	-redir tcp:10022::22
 
 include $(TOP)/py/mkrules.mk
+

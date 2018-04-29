@@ -1,0 +1,13 @@
+DIR := $(DIR)device/
+
+ifeq ("$(LIB_HUB)", "1")
+CFLAGS += -DLIB_HUB
+OBJECTS += $(BUILD)hub.c.o
+
+$(BUILD)hub.c.o: $(DIR)hub.c $(INCDIR)device/hub.h $(INCDIR)hcd/hcd.h $(INCDIR)platform/platform.h $(INCDIR)usbd/device.h $(INCDIR)usbd/devicerequest.h $(INCDIR)usbd/descriptors.h $(INCDIR)usbd/pipe.h $(INCDIR)usbd/usbd.h
+	$(GCC) $< -o $@
+endif
+
+ifeq ("$(LIB_HID)", "1")
+include $(DIR)hid/makefile.in
+endif
