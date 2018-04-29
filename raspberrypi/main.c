@@ -64,6 +64,8 @@ char *arm_boot_tag_cmdline(const int32_t *ptr) {
 extern void __attribute__((interrupt("IRQ"))) irq_timer(void);
 
 int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
+    bool use_qemu = false;
+    
     extern char * _heap_end;
     extern char * _heap_start;
     extern char * _estack;
@@ -72,11 +74,14 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
     mp_stack_set_top(&_estack);
     mp_stack_set_limit((char*)&_estack - (char*)&_heap_end - 1024);
 
-    // use UART if arm boot tag holds "qemu" in cmdline else use Mini-UART.
     if (atag && (strcmp("qemu", arm_boot_tag_cmdline(atag)) == 0)) {
-        uart_init(false);
-    } else {
-        uart_init(true);
+        use_qemu = true;
+    }
+
+    // use UART if arm boot tag holds "qemu" in cmdline else use Mini-UART.
+    uart_init(!use_qemu);
+
+    if (!use_qemu) {
         exception_vector.irq = irq_timer;
         arm_exceptions_init();
         arm_irq_enable();
@@ -90,7 +95,9 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         do_str("for i in range(1):pass", MP_PARSE_FILE_INPUT);
 
 #ifdef MICROPY_PY_USBHOST
-        rpi_usb_host_init();
+        if (!use_qemu) {
+            rpi_usb_host_init();
+        }
 #endif
         for (;;) {
             if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
