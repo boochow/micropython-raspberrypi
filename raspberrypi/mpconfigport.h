@@ -35,7 +35,7 @@
 //#define MICROPY_PY_BUILTINS_HELP_TEXT rpi_help_text
 #define MICROPY_PY_BUILTINS_HELP_MODULES (1)
 #define MICROPY_PY___FILE__         (0)
-#define MICROPY_PY_GC               (0)
+#define MICROPY_PY_GC               (1)
 #define MICROPY_PY_ARRAY            (1)
 #define MICROPY_PY_ATTRTUPLE        (0)
 #define MICROPY_PY_COLLECTIONS      (0)
@@ -43,7 +43,7 @@
 #define MICROPY_PY_CMATH            (0)
 #define MICROPY_PY_IO               (0)
 #define MICROPY_PY_STRUCT           (0)
-#define MICROPY_PY_SYS              (1)
+#define MICROPY_PY_SYS              (0)
 #define MICROPY_PY_MACHINE          (1)
 #define MICROPY_PY_UTIME_MP_HAL     (1)
 #define MICROPY_CPYTHON_COMPAT      (0)
