@@ -74,7 +74,7 @@ static void gpio_set_mode(uint32_t pin, uint32_t mode) {
     uint32_t reg;
     uint32_t pos;
 
-    reg = GPIO(GPFSEL0 + pin / 10 * 4);
+    reg = GPFSEL0 + pin / 10 * 4;
     pos = (pin % 10) * 3;
     mode = mode & 7U;
     IOREG(reg) = (IOREG(reg) & ~(7 << pos)) | (mode << pos);
@@ -84,7 +84,7 @@ static uint32_t gpio_get_mode(uint32_t pin) {
     uint32_t reg;
     uint32_t pos;
 
-    reg = GPIO(GPFSEL0 + pin / 10 * 4);
+    reg = GPFSEL0 + pin / 10 * 4;
     pos = (pin % 10) * 3;
     return (IOREG(reg) >> pos) & 7U;
 }
@@ -94,14 +94,14 @@ static void gpio_set_level(uint32_t pin, uint32_t level) {
 
     reg = (pin > 31) ? 4 : 0;
     reg += (level == 0) ? GPCLR0 : GPSET0;
-    IOREG(GPIO(reg)) = 1 << (pin & 0x1F);
+    IOREG(reg) = 1 << (pin & 0x1F);
 }
 
 static uint32_t gpio_get_level(uint32_t pin) {
     uint32_t reg;
 
     reg = GPLEV0 + ((pin > 31) ? 4 : 0);
-    if (IOREG(GPIO(reg)) & (1 << (pin & 0x1f))) {
+    if (IOREG(reg) & (1 << (pin & 0x1f))) {
         return 1;
     } else {
         return 0;
@@ -117,13 +117,13 @@ static inline void delay_cycles(int32_t count)
 static void gpio_set_pull_mode(uint32_t pin, uint32_t pud) {
     uint32_t reg;
 
-    IOREG(GPIO(GPPUD)) = pud;
+    IOREG(GPPUD) = pud;
     delay_cycles(150);
     reg = GPPUDCLK0 + (pin >> 5) * 4;
-    IOREG(GPIO(reg)) = 1 << (pin & 0x1f);
+    IOREG(reg) = 1 << (pin & 0x1f);
     delay_cycles(150);
-    IOREG(GPIO(GPPUD)) = 0;
-    IOREG(GPIO(reg)) = 0;
+    IOREG(GPPUD) = 0;
+    IOREG(reg) = 0;
 }
 
 STATIC void machine_pin_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {

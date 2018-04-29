@@ -91,7 +91,7 @@ struct mini_uart_t volatile *mini_uart = (struct mini_uart_t volatile *) (0x2150
 
 void mini_uart_init() {
     // set GPIO14, GPIO15 to pull down, alternate function 0
-    IOREG(GPIO(GPFSEL1)) = (GPF_ALT_5 << (3*4)) | (GPF_ALT_5 << (3*5));
+    IOREG(GPFSEL1) = (GPF_ALT_5 << (3*4)) | (GPF_ALT_5 << (3*5));
 
     // UART basic settings
     IOREG(AUX_ENABLES) = 1;
