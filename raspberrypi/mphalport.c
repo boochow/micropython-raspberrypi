@@ -10,7 +10,10 @@ void mp_hal_delay_ms(mp_uint_t ms) {
     uint64_t end_time;
 
     end_time = systime() + ms * 1000;
-    while(systime() < end_time);
+    while(systime() < end_time) {
+        extern void mp_handle_pending(void);
+        mp_handle_pending();
+    }
   
     return;
 }
