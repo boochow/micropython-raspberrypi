@@ -38,11 +38,11 @@ static machine_timer_obj_t machine_timer_obj[] = {
 
 static void timer_enable(const int num) {
     if ((IRQ_ENABLE1 & IRQ_SYSTIMER(num)) == 0) {
-        IRQ_ENABLE1 = IRQ_SYSTIMER(num);
         if (machine_timer_obj[num].mode != FREE) {
             systimer->C[num] = systimer->CLO + machine_timer_obj[num].period;
         }
         machine_timer_obj[num].active = true;
+        IRQ_ENABLE1 = IRQ_SYSTIMER(num);
     }
 }
 
@@ -54,13 +54,13 @@ static void timer_disable(const int num) {
 void __attribute__((interrupt("IRQ"))) irq_timer(void) {
     int timer_value;
 
-    if (IRQ_PEND1 & 1) {
+    if (IRQ_PEND1 & IRQ_SYSTIMER(0)) {
         timer_value = systimer->C[0];
-    } else if (IRQ_PEND1 & 2) {
+    } else if (IRQ_PEND1 & IRQ_SYSTIMER(1)) {
         timer_value = systimer->C[1];
-    } else if (IRQ_PEND1 & 4) {
+    } else if (IRQ_PEND1 & IRQ_SYSTIMER(2)) {
         timer_value = systimer->C[2];
-    } else if (IRQ_PEND1 & 8) {
+    } else if (IRQ_PEND1 & IRQ_SYSTIMER(3)) {
         timer_value = systimer->C[3];
     } else {
         return;
@@ -78,6 +78,9 @@ void __attribute__((interrupt("IRQ"))) irq_timer(void) {
                     systimer->C[i] += tim[i].period;
                 } else if (tim[i].mode == ONE_SHOT) {
                     timer_disable(i);
+                } else {
+                    // FREE mode
+                    tim[i].period = systimer->C[i];
                 }
             }
             systimer->CS |= (1 << i);
