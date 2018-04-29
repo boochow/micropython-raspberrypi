@@ -32,7 +32,7 @@
 #include "py/obj.h"
 #include "lib/timeutils/timeutils.h"
 #include "extmod/utime_mphal.h"
-#include "systimer.h"
+#include "rpi.h"
 
 /// \module time - time related functions
 ///

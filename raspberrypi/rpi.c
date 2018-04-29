@@ -1,8 +1,9 @@
-#include <unistd.h>
-#include "bcm283x.h"
-#include "systimer.h"
+#include <stdint.h>
+#include <stdio.h>
 
-systimer_t *systimer = (systimer_t *) (IO_BASE + 0x3000);
+#include "rpi.h"
+
+systimer_t *systimer = (systimer_t *) SYSTIMER;
 
 volatile uint64_t systime(void) {
     uint64_t t;

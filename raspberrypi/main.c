@@ -13,9 +13,8 @@
 #include "lib/utils/pyexec.h"
 
 #include "arm_exceptions.h"
-#include "bcm283x_it.h"
+#include "rpi.h"
 #include "uart-qemu.h"
-#include "systimer.h"
 #include "usbhost.h"
 
 void do_str(const char *src, mp_parse_input_kind_t input_kind) {

@@ -5,7 +5,7 @@
 #include "py/runtime.h"
 #include "py/mphal.h"
 #include "modmachine.h"
-#include "systimer.h"
+#include "rpi.h"
 #include "bcm283x_it.h"
 
 /*

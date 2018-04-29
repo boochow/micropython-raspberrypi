@@ -39,7 +39,7 @@ SRC_LIB = $(addprefix lib/,\
 SRC_C = \
 	main.c \
 	uart-qemu.c \
-	systimer.c \
+	rpi.c \
 	mphalport.c \
 	modmcu.c \
 	modutime.c \
