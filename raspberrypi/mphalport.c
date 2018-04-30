@@ -4,7 +4,6 @@
 #include "py/obj.h"
 #include "rpi.h"
 #include "uart-qemu.h"
-#include "usb.h"
 
 void mp_hal_delay_ms(mp_uint_t ms) {
     uint64_t end_time;
