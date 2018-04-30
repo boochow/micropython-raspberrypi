@@ -50,6 +50,7 @@ SRC_C = \
 	machine_timer.c \
 	bcm283x_mailbox.c \
 	gpu.c \
+	gccollect.c \
 
 SRC_LIB = \
 	lib/utils/stdout_helpers.c \
@@ -86,7 +87,8 @@ SRC_LIB = \
 	lib/timeutils/timeutils.c \
 
 SRC_S = \
-    start.s
+    start.s \
+    gchelper.s \
 
 # USB
 ifneq ($(MICROPY_PY_USBHOST),0)

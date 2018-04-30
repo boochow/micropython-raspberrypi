@@ -116,9 +116,6 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
     return 0;
 }
 
-void gc_collect(void) {
-}
-
 mp_lexer_t *mp_lexer_new_from_file(const char *filename) {
     mp_raise_OSError(MP_ENOENT);
 }
