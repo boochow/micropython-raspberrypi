@@ -48,7 +48,8 @@ SRC_C = \
 	machine_pin.c \
 	arm_exceptions.c \
 	machine_timer.c \
-
+	bcm283x_mailbox.c \
+	gpu.c \
 
 SRC_LIB = \
 	lib/utils/stdout_helpers.c \
