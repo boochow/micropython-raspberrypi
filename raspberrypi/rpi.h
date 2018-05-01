@@ -10,4 +10,8 @@ extern systimer_t *systimer;
 
 volatile uint64_t systime(void);
 
+void rpi_setup_exception_vectors(void);
+
+extern void isr_irq_timer(void);
+
 #endif // MICROPY_INCLUDED_RPI_RPI_H

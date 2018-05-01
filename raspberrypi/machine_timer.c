@@ -52,7 +52,7 @@ static void timer_disable(const int num) {
     machine_timer_obj[num].active = false;
 }
 
-void __attribute__((interrupt("IRQ"))) irq_timer(void) {
+void isr_irq_timer(void) {
     int timer_value;
 
     if (IRQ_PEND1 & IRQ_SYSTIMER(0)) {

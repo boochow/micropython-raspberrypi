@@ -47,6 +47,7 @@ SRC_C = \
 	modmachine.c \
 	machine_pin.c \
 	arm_exceptions.c \
+	arm_ex_handler_weak.c \
 	machine_timer.c \
 	bcm283x_mailbox.c \
 	gpu.c \

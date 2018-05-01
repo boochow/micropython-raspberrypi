@@ -61,8 +61,6 @@ char *arm_boot_tag_cmdline(const int32_t *ptr) {
     return NULL;
 }
 
-extern void __attribute__((interrupt("IRQ"))) irq_timer(void);
-
 int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
     bool use_qemu = false;
     
@@ -82,7 +80,7 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
     uart_init(!use_qemu);
 
     if (!use_qemu) {
-        exception_vector.irq = irq_timer;
+        arm_irq_disable();
         arm_exceptions_init();
         arm_irq_enable();
     }
