@@ -16,6 +16,7 @@ cd raspberrypi; make
 
 1. download `bootcode.bin` and `start.elf` from https://github.com/raspberrypi/firmware/tree/master/boot
 1. copy `bootcode.bin` and `start.elf` to root of your microSD card
+1. copy `build/firmware.img` to root of your microSD card
 1. edit `config.txt` on root of your microSD card and add a line `kernel=firmware.img`.
 
 ## Modules and Classes
