@@ -176,6 +176,10 @@ int mp_hal_stdin_rx_chr(void) {
         }
     }
 #else
+    while (!uart_rx_state()) {
+        extern void mp_handle_pending(void);
+        mp_handle_pending();
+    }
     return uart_getc();
 #endif
 }

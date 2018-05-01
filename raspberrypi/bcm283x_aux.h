@@ -12,6 +12,14 @@
 #define AUX_SPI0    AUX_REG(0x80)
 #define AUX_SPI1    AUX_REG(0xC0)
 
+#define AUX_IRQ_MU_PENDING   (1)
+#define AUX_IRQ_SPI1_PENDING (1 << 1)
+#define AUX_IRQ_SPI2_PENDING (1 << 2)
+
+#define AUX_ENABLE_MU   (1)
+#define AUX_ENABLE_SPI1 (1 << 1)
+#define AUX_ENABLE_SPI2 (1 << 2)
+
 typedef struct mini_uart_t {
     uint32_t IO;
     uint32_t IER;
@@ -25,6 +33,10 @@ typedef struct mini_uart_t {
     uint32_t STAT;
     uint32_t BAUD;
 } mini_uart_t;
+
+#define AUX_IIR_IRQ_TX (1)
+#define AUX_IIR_IRQ_RX (1 << 1)
+
 
 typedef struct aux_spi_t {
     uint32_t CNTL0;

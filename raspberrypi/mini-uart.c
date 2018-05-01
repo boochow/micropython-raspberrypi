@@ -14,7 +14,7 @@ void mini_uart_init() {
     IOREG(GPFSEL1) = (GPF_ALT_5 << (3*4)) | (GPF_ALT_5 << (3*5));
 
     // UART basic settings
-    IOREG(AUX_ENABLES) = 1;
+    IOREG(AUX_ENABLES) |= AUX_ENABLE_MU;
     mini_uart->CNTL = 0;   // disable mini uart
 
     mini_uart->IER = 0;    // disable receive/transmit interrupts
@@ -27,7 +27,6 @@ void mini_uart_init() {
 
     // enable transmit and receive
     mini_uart->CNTL = 3;
-
 };
 
 void mini_uart_putc(char c) {
@@ -40,8 +39,6 @@ uint32_t mini_uart_getc(void) {
     uint32_t c;
   
     while (!IS_RX_RDY_MINI) {
-        extern void mp_handle_pending(void);
-        mp_handle_pending();
     }
     c = RX_CH_MINI;
     return c & 0xffU;
