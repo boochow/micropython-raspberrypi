@@ -9,8 +9,8 @@
 #define AUX_IRQ     AUX_REG(0x00)
 #define AUX_ENABLES AUX_REG(0x04)
 #define AUX_MU      AUX_REG(0x40)
-#define AUX_SPI0    AUX_REG(0x80)
-#define AUX_SPI1    AUX_REG(0xC0)
+#define AUX_SPI1    AUX_REG(0x80)
+#define AUX_SPI2    AUX_REG(0xC0)
 
 #define AUX_IRQ_MU_PENDING   (1)
 #define AUX_IRQ_SPI1_PENDING (1 << 1)
@@ -34,9 +34,17 @@ typedef struct mini_uart_t {
     uint32_t BAUD;
 } mini_uart_t;
 
-#define AUX_IIR_IRQ_TX (1)
-#define AUX_IIR_IRQ_RX (1 << 1)
+// The description of IER in the manual is incorrect.
+// Following definitions are from 16550's IER
+#define MU_IER_RX_AVAIL  (1)
+#define MU_IER_TX_EMPTY  (1 << 1)
+#define MU_IER_LSR_CHGD  (1 << 2)
 
+#define MU_IIR_NOTHING   (0)
+#define MU_IIR_TX_EMPTY  (1 << 1)
+#define MU_IIR_RX_AVAIL  (1 << 2)
+
+// aux spi not yet tested
 
 typedef struct aux_spi_t {
     uint32_t CNTL0;

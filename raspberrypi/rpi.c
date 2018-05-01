@@ -2,6 +2,10 @@
 #include <stdio.h>
 
 #include "arm_exceptions.h"
+#include "bcm283x.h"
+#include "bcm283x_it.h"
+#include "bcm283x_gpio.h"
+#include "bcm283x_aux.h"
 #include "rpi.h"
 
 // System Timers
@@ -27,11 +31,18 @@ volatile uint64_t systime(void) {
 
 // IRQ handler
 
-#define IRQ_SYSTIMERS (IRQ_SYSTIMER(0) | IRQ_SYSTIMER(1) | IRQ_SYSTIMER(2) | IRQ_SYSTIMER(3))
+#define IRQ_SYSTIMERS (IRQ_SYSTIMER(0) | \
+                       IRQ_SYSTIMER(1) | \
+                       IRQ_SYSTIMER(2) | \
+                       IRQ_SYSTIMER(3))
 
 void __attribute__((interrupt("IRQ"))) irq_handler(void) {
     if (IRQ_PEND1 & IRQ_SYSTIMERS) {
         isr_irq_timer();
+    }
+    if (IRQ_PEND1 & IRQ_AUX) {
+        // if (AUX_IRQ & AUX_IRQ_MU_PENDING)
+        isr_irq_mini_uart();
     }
 }
 
