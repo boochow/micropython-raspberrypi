@@ -38,7 +38,7 @@ SRC_LIB = $(addprefix lib/,\
 
 SRC_C = \
 	main.c \
-	uart-qemu.c \
+	uart.c \
 	rpi.c \
 	mphalport.c \
 	modmcu.c \
@@ -52,6 +52,8 @@ SRC_C = \
 	bcm283x_mailbox.c \
 	gpu.c \
 	gccollect.c \
+	mini-uart.c \
+
 
 SRC_LIB = \
 	lib/utils/stdout_helpers.c \

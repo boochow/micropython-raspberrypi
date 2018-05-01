@@ -14,7 +14,7 @@
 
 #include "arm_exceptions.h"
 #include "rpi.h"
-#include "uart-qemu.h"
+#include "mphalport.h"
 #include "usbhost.h"
 
 void do_str(const char *src, mp_parse_input_kind_t input_kind) {
@@ -72,19 +72,21 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
     mp_stack_set_top(&_estack);
     mp_stack_set_limit((char*)&_estack - (char*)&_heap_end - 1024);
 
+    // check ARM boot tag and set up standard I/O
     if (atag && (strcmp("qemu", arm_boot_tag_cmdline(atag)) == 0)) {
         use_qemu = true;
     }
 
-    // use UART if arm boot tag holds "qemu" in cmdline else use Mini-UART.
-    uart_init(!use_qemu);
-
-    if (!use_qemu) {
+    if (use_qemu) {
+        uart_init(UART_QEMU);
+    } else {
+        uart_init(MINI_UART);
         arm_irq_disable();
         arm_exceptions_init();
         arm_irq_enable();
     }
-         
+
+    // start MicroPython
     while (true) {
         gc_init (&_heap_start, &_heap_end );
 
