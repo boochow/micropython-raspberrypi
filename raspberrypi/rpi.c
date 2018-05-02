@@ -41,8 +41,9 @@ void __attribute__((interrupt("IRQ"))) irq_handler(void) {
         isr_irq_timer();
     }
     if (IRQ_PEND1 & IRQ_AUX) {
-        // if (AUX_IRQ & AUX_IRQ_MU_PENDING)
-        isr_irq_mini_uart();
+        if (AUX_IRQ & AUX_FLAG_MU) {
+            isr_irq_mini_uart();
+        }
     }
 }
 

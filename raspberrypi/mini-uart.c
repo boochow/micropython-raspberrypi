@@ -74,7 +74,7 @@ void mini_uart_init() {
     mini_uart_irq_disable();
 #endif
 
-    IOREG(AUX_ENABLES) |= AUX_ENABLE_MU;
+    AUX_ENABLES |= AUX_FLAG_MU;
     mini_uart->IER = 0;    // disable interrupts
     mini_uart->CNTL = 0;   // disable mini uart
 

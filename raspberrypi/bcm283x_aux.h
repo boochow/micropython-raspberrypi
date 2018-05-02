@@ -4,21 +4,17 @@
 #include "bcm283x.h"
 
 #define AUX_BASE    (0x215000 + IO_BASE)
-#define AUX_REG(X)  ((X) + AUX_BASE)
+#define AUX(X)      ((X) + AUX_BASE)
 
-#define AUX_IRQ     AUX_REG(0x00)
-#define AUX_ENABLES AUX_REG(0x04)
-#define AUX_MU      AUX_REG(0x40)
-#define AUX_SPI1    AUX_REG(0x80)
-#define AUX_SPI2    AUX_REG(0xC0)
+#define AUX_IRQ        IOREG(AUX(0x00))
+#define AUX_ENABLES    IOREG(AUX(0x04))
 
-#define AUX_IRQ_MU_PENDING   (1)
-#define AUX_IRQ_SPI1_PENDING (1 << 1)
-#define AUX_IRQ_SPI2_PENDING (1 << 2)
+#define AUX_FLAG_MU    (1)
+#define AUX_FLAG_SPI1  (1 << 1)
+#define AUX_FLAG_SPI2  (1 << 2)
 
-#define AUX_ENABLE_MU   (1)
-#define AUX_ENABLE_SPI1 (1 << 1)
-#define AUX_ENABLE_SPI2 (1 << 2)
+// top address of mini_uart_t
+#define AUX_MU  AUX(0x40)
 
 typedef struct mini_uart_t {
     uint32_t IO;
@@ -44,7 +40,12 @@ typedef struct mini_uart_t {
 #define MU_IIR_TX_EMPTY  (1 << 1)
 #define MU_IIR_RX_AVAIL  (1 << 2)
 
+
 // aux spi not yet tested
+
+// top addresses of aux_spi_t
+#define AUX_SPI1    AUX(0x80)
+#define AUX_SPI2    AUX(0xC0)
 
 typedef struct aux_spi_t {
     uint32_t CNTL0;
