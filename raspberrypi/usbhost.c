@@ -15,13 +15,19 @@ extern void *Core;
 extern void *Host;
 extern void *Power;
 extern void *Devices;
+extern void *keyboards;
+extern void *mice;
 
 typedef struct _hcd_globals_t {
     void *core;
     void *host;
     void *power;
     void *devices;
+    void *keyboards;
+    void *mice;
 } hcd_globals_t;
+
+extern hcd_globals_t *hcd_globals;
 
 void rpi_usb_host_init(void) {
     UsbInitialise();
@@ -30,6 +36,8 @@ void rpi_usb_host_init(void) {
     MP_STATE_PORT(hcd_globals)->host = Host;
     MP_STATE_PORT(hcd_globals)->power = Power;
     MP_STATE_PORT(hcd_globals)->devices = Devices;
+    MP_STATE_PORT(hcd_globals)->keyboards = keyboards;
+    MP_STATE_PORT(hcd_globals)->mice = mice;
 }
 
 void rpi_usb_host_process(void) {
@@ -84,4 +92,3 @@ void PowerOffUsb() {
 void MicroDelay(u32 delay) {
     mp_hal_delay_us(delay);
 }
-
