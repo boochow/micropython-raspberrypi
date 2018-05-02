@@ -95,6 +95,9 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         do_str("for i in range(1):pass", MP_PARSE_FILE_INPUT);
 
 #ifdef MICROPY_PY_USBHOST
+        // USB host library initialization must be called after MicroPython's
+        // initialization because USB host library allocates its memory blocks
+        // using m_alloc(), which is called from MemoryAllocate in usbhost.c.
         if (!use_qemu) {
             rpi_usb_host_init();
         }
