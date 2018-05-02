@@ -6,7 +6,7 @@
 // Set this to 0 for avoiding mini-UART interrupts.
 #define USE_IRQ 1
 
-struct mini_uart_t volatile *mini_uart = (struct mini_uart_t*) AUX_MU;
+mini_uart_t volatile *mini_uart = (mini_uart_t*) AUX_MU;
 
 #define RX_CH        (mini_uart->IO)
 #define TX_FULL      ((mini_uart->LSR & 0x20) == 0x0)

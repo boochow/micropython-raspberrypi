@@ -5,7 +5,7 @@
 
 #define UART_BASE (0x201000 + IO_BASE)
 
-typedef struct uart_t {
+typedef struct _uart_t {
     uint32_t DR;
     uint32_t RSRECR;
     uint8_t reserved1[0x10];

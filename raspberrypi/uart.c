@@ -9,10 +9,10 @@
 #define IS_TX_RDY (!(uart0->FR & (1 << 5)))
 #define TX_CH(c)  (uart0->DR = (c))
 
-volatile struct uart_t *uart0;
+volatile uart_t *uart0;
 
-static void uart0_init_with_regs_addr(uint32_t addr) {
-    uart0 = (volatile struct uart_t *) 0x101f1000;
+static void uart0_init_with_regs_addr(const uint32_t addr) {
+    uart0 = (volatile uart_t *) addr;
     
     uart0->CR = 0;
     // set spped to 115200 bps

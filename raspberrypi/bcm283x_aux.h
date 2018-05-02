@@ -16,7 +16,7 @@
 // top address of mini_uart_t
 #define AUX_MU  AUX(0x40)
 
-typedef struct mini_uart_t {
+typedef struct _mini_uart_t {
     uint32_t IO;
     uint32_t IER;
     uint32_t IIR;
@@ -47,7 +47,7 @@ typedef struct mini_uart_t {
 #define AUX_SPI1    AUX(0x80)
 #define AUX_SPI2    AUX(0xC0)
 
-typedef struct aux_spi_t {
+typedef struct _aux_spi_t {
     uint32_t CNTL0;
     uint32_t CNTL1;
     uint32_t STAT;
