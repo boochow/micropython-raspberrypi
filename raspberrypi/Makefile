@@ -88,6 +88,7 @@ SRC_LIB = \
 	lib/libm/atan2f.c \
 	lib/mp-readline/readline.c \
 	lib/timeutils/timeutils.c \
+	lib/utils/interrupt_char.c \
 
 SRC_S = \
     start.s \

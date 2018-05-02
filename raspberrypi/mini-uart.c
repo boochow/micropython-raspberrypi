@@ -2,6 +2,7 @@
 #include "bcm283x_aux.h"
 #include "bcm283x_it.h"
 #include "mini-uart.h"
+#include "lib/utils/interrupt_char.h"
 
 // Set this to 0 for avoiding mini-UART interrupts.
 #define USE_IRQ 1
@@ -48,7 +49,12 @@ static void mini_uart_irq_disable() {
 void isr_irq_mini_uart(void) {
     while (IRQ_MU_PENDING) {
         if (mini_uart->IIR & MU_IIR_RX_AVAIL) {
-            RX_WRITE((unsigned char) (RX_CH & 0xff));
+            unsigned char c = (RX_CH & 0xff);
+            if (c == mp_interrupt_char) {
+                mp_keyboard_interrupt();
+            } else {
+                RX_WRITE(c);
+            }
         }
     }
 }
