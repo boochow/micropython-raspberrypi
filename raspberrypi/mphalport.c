@@ -170,25 +170,19 @@ int usb_keyboard_getc() {
 
 // Receive single character
 int mp_hal_stdin_rx_chr(void) {
-#ifdef MICROPY_PY_USBHOST
-    int result;
     for(;;) {
+#ifdef MICROPY_PY_USBHOST
+        int result;
         if ((result = usb_keyboard_getc()) >= 0) {
             return result;
         }
+#endif
         if (uart_rx_state()) {
             return uart_getc();
         }
         extern void mp_handle_pending(void);
         mp_handle_pending();
     }
-#else
-    while (!uart_rx_state()) {
-        extern void mp_handle_pending(void);
-        mp_handle_pending();
-    }
-    return uart_getc();
-#endif
 }
 
 // Send string of given length
