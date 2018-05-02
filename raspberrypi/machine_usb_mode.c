@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "py/runtime.h"
-#include "usb.h"
+#include "machine_usb_mode.h"
 #include "usbhost.h"
 
 

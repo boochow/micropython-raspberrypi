@@ -1,12 +1,16 @@
 #include <stdio.h>
-#include <unistd.h>
+#ifdef MICROPY_PY_USBHOST
+#include "usbd/usbd.h"
+#include "device/hid/keyboard.h"
+#endif
+
+#include <stdint.h>
 #include "py/mpconfig.h"
 #include "py/obj.h"
 #include "rpi.h"
 #include "mphalport.h"
 #include "mini-uart.h"
 #include "uart.h"
-
 
 // Time and delay
 
@@ -89,7 +93,7 @@ uint32_t uart_rx_state(void) {
 #ifdef MICROPY_PY_USBHOST
 static unsigned int kbd_addr;
 static unsigned int keys[6];
-char keymap[2][104] = {
+unsigned char keymap[2][104] = {
     {
         0x0, 0x1, 0x2, 0x3, 'a', 'b', 'c', 'd',
         'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
@@ -122,7 +126,7 @@ char keymap[2][104] = {
     }
 };
 
-char keycode2char(int k, unsigned char shift) {
+unsigned char keycode2char(int k, unsigned char shift) {
     if (k > 103) {
         return 0;
     } else {
@@ -130,10 +134,11 @@ char keycode2char(int k, unsigned char shift) {
     }
 }
 
+// usb_keyboard_getc() returns -1 if no input
 int usb_keyboard_getc() {
     unsigned int key;
-    unsigned char mod;
-    int result = 0;
+    struct KeyboardModifiers mod;
+    int result = -1;
     
     if (kbd_addr == 0) {
         // Is there a keyboard ?
@@ -150,7 +155,7 @@ int usb_keyboard_getc() {
             if (key != keys[0] && key != keys[1] && key != keys[2] && \
                 key != keys[3] && key != keys[4] && key != keys[5] && key) {
                 mod = KeyboardGetModifiers(kbd_addr);
-                result = keycode2char(key, mod & 0x22);
+                result = keycode2char(key,  mod.RightShift | mod.LeftShift);
             }
             keys[i] = key;
         }
@@ -168,12 +173,14 @@ int mp_hal_stdin_rx_chr(void) {
 #ifdef MICROPY_PY_USBHOST
     int result;
     for(;;) {
-        if (result = usb_keyboard_getc()) {
+        if ((result = usb_keyboard_getc()) >= 0) {
             return result;
         }
         if (uart_rx_state()) {
             return uart_getc();
         }
+        extern void mp_handle_pending(void);
+        mp_handle_pending();
     }
 #else
     while (!uart_rx_state()) {

@@ -100,7 +100,7 @@ CSUDLIB=libcsud.a
 INC += -I$(USBHOST_DIR)/include
 CFLAGS += -DMICROPY_PY_USBHOST=$(MICROPY_PY_USBHOST)
 SRC_MOD += usbhost.c \
-	usb.c \
+	machine_usb_mode.c \
 
 LIB += -lcsud
 LDFLAGS += -no-wchar-size-warning
