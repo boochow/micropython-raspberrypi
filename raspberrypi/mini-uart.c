@@ -19,7 +19,7 @@ mini_uart_t volatile *mini_uart = (mini_uart_t*) AUX_MU;
 
 #define IRQ_MU_PENDING ((mini_uart->IIR & 1U) == 0)
 
-#define RX_BUF_SIZE 0xff
+#define RX_BUF_SIZE 0xfff
 
 volatile unsigned char rbuf[RX_BUF_SIZE + 1];
 volatile uint32_t rbuf_w;
