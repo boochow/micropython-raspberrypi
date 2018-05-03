@@ -102,6 +102,5 @@ extern const struct _mp_obj_module_t gpu_module;
 
 #define MICROPY_PORT_ROOT_POINTERS \
     const char *readline_hist[8]; \
-    \
     struct _hcd_globals_t *hcd_globals; \
 
