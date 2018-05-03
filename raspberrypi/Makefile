@@ -55,40 +55,40 @@ SRC_C = \
 	mini-uart.c \
 
 
-SRC_LIB = \
-	lib/utils/stdout_helpers.c \
-	lib/utils/interrupt_char.c \
-	lib/utils/pyexec.c \
-	lib/libc/string0.c \
-	lib/libm/math.c \
-	lib/libm/fmodf.c \
-	lib/libm/nearbyintf.c \
-	lib/libm/ef_sqrt.c \
-	lib/libm/log1pf.c \
-	lib/libm/acoshf.c \
-	lib/libm/asinhf.c \
-	lib/libm/atanhf.c \
-	lib/libm/kf_rem_pio2.c \
-	lib/libm/kf_sin.c \
-	lib/libm/kf_cos.c \
-	lib/libm/kf_tan.c \
-	lib/libm/ef_rem_pio2.c \
-	lib/libm/erf_lgamma.c \
-	lib/libm/sf_sin.c \
-	lib/libm/sf_cos.c \
-	lib/libm/sf_tan.c \
-	lib/libm/sf_frexp.c \
-	lib/libm/sf_modf.c \
-	lib/libm/sf_ldexp.c \
-	lib/libm/sf_erf.c \
-	lib/libm/wf_lgamma.c \
-	lib/libm/wf_tgamma.c \
-	lib/libm/asinfacosf.c \
-	lib/libm/atanf.c \
-	lib/libm/atan2f.c \
-	lib/mp-readline/readline.c \
-	lib/timeutils/timeutils.c \
-	lib/utils/interrupt_char.c \
+SRC_LIB = $(addprefix lib/,\
+	utils/stdout_helpers.c \
+	utils/interrupt_char.c \
+	utils/pyexec.c \
+	libc/string0.c \
+	libm/math.c \
+	libm/fmodf.c \
+	libm/nearbyintf.c \
+	libm/ef_sqrt.c \
+	libm/log1pf.c \
+	libm/acoshf.c \
+	libm/asinhf.c \
+	libm/atanhf.c \
+	libm/kf_rem_pio2.c \
+	libm/kf_sin.c \
+	libm/kf_cos.c \
+	libm/kf_tan.c \
+	libm/ef_rem_pio2.c \
+	libm/erf_lgamma.c \
+	libm/sf_sin.c \
+	libm/sf_cos.c \
+	libm/sf_tan.c \
+	libm/sf_frexp.c \
+	libm/sf_modf.c \
+	libm/sf_ldexp.c \
+	libm/sf_erf.c \
+	libm/wf_lgamma.c \
+	libm/wf_tgamma.c \
+	libm/asinfacosf.c \
+	libm/atanf.c \
+	libm/atan2f.c \
+	mp-readline/readline.c \
+	timeutils/timeutils.c \
+	)
 
 SRC_S = \
     start.s \
