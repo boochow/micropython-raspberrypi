@@ -133,10 +133,18 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_timer_deinit_obj, machine_timer_deinit)
 
 STATIC void machine_timer_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     machine_timer_obj_t *self = self_in;
-    if (self->active) {
-        mp_printf(print, "Timer(%u); period=%u, mode=%u, counter=%u, compare_reg = %u", self->id, self->period, self->mode, self->counter, systimer->C[self->id]);
-    } else {
-        mp_printf(print, "Timer(%u); *inactive*", self->id);
+    mp_printf(print, "Timer(%u, period=%u", self->id, self->period);
+    qstr mode_qstr = MP_QSTR_ONE_SHOT;
+    if (self->mode == PERIODIC) {
+        mode_qstr = MP_QSTR_PERIODIC;
+    } else if (self->mode == FREE) {
+        mode_qstr = MP_QSTR_FREE;
+    }
+    mp_printf(print, ", mode=Timer.%s", qstr_str(mode_qstr));
+    mp_printf(print, ", counter=%u)", self->counter);
+    mp_printf(print, " # compare=%u", systimer->C[self->id]);
+    if (!self->active) {
+        mp_printf(print, "; inactive");
     }
 }
 
