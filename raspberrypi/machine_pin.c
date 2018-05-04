@@ -9,65 +9,66 @@
 #include "extmod/virtpin.h"
 
 typedef struct _machine_pin_obj_t {
-    mp_obj_base_t base;
-    uint32_t id;
+    const mp_obj_base_t base;
+    const uint32_t id;
+    uint32_t pull_mode; // to save pull up/down settings
 } machine_pin_obj_t;
 
-STATIC const machine_pin_obj_t machine_pin_obj[] = {
-    {{&machine_pin_type}, 0},
-    {{&machine_pin_type}, 1},
-    {{&machine_pin_type}, 2},
-    {{&machine_pin_type}, 3},
-    {{&machine_pin_type}, 4},
-    {{&machine_pin_type}, 5},
-    {{&machine_pin_type}, 6},
-    {{&machine_pin_type}, 7},
-    {{&machine_pin_type}, 8},
-    {{&machine_pin_type}, 9},
-    {{&machine_pin_type}, 10},
-    {{&machine_pin_type}, 11},
-    {{&machine_pin_type}, 12},
-    {{&machine_pin_type}, 13},
-    {{&machine_pin_type}, 14},
-    {{&machine_pin_type}, 15},
-    {{&machine_pin_type}, 16},
-    {{&machine_pin_type}, 17},
-    {{&machine_pin_type}, 18},
-    {{&machine_pin_type}, 19},
-    {{&machine_pin_type}, 20},
-    {{&machine_pin_type}, 21},
-    {{&machine_pin_type}, 22},
-    {{&machine_pin_type}, 23},
-    {{&machine_pin_type}, 24},
-    {{&machine_pin_type}, 25},
-    {{&machine_pin_type}, 26},
-    {{&machine_pin_type}, 27},
-    {{&machine_pin_type}, 28},
-    {{&machine_pin_type}, 29},
-    {{&machine_pin_type}, 30},
-    {{&machine_pin_type}, 31},
-    {{&machine_pin_type}, 32},
-    {{&machine_pin_type}, 33},
-    {{&machine_pin_type}, 34},
-    {{&machine_pin_type}, 35},
-    {{&machine_pin_type}, 36},
-    {{&machine_pin_type}, 37},
-    {{&machine_pin_type}, 38},
-    {{&machine_pin_type}, 39},
-    {{&machine_pin_type}, 40},
-    {{&machine_pin_type}, 41},
-    {{&machine_pin_type}, 42},
-    {{&machine_pin_type}, 43},
-    {{&machine_pin_type}, 44},
-    {{&machine_pin_type}, 45},
-    {{&machine_pin_type}, 46},
-    {{&machine_pin_type}, 47},
-    {{&machine_pin_type}, 48},
-    {{&machine_pin_type}, 49},
-    {{&machine_pin_type}, 50},
-    {{&machine_pin_type}, 51},
-    {{&machine_pin_type}, 52},
-    {{&machine_pin_type}, 53},
+STATIC machine_pin_obj_t machine_pin_obj[] = {
+    {{&machine_pin_type}, 0, 0},
+    {{&machine_pin_type}, 1, 0},
+    {{&machine_pin_type}, 2, 0},
+    {{&machine_pin_type}, 3, 0},
+    {{&machine_pin_type}, 4, 0},
+    {{&machine_pin_type}, 5, 0},
+    {{&machine_pin_type}, 6, 0},
+    {{&machine_pin_type}, 7, 0},
+    {{&machine_pin_type}, 8, 0},
+    {{&machine_pin_type}, 9, 0},
+    {{&machine_pin_type}, 10, 0},
+    {{&machine_pin_type}, 11, 0},
+    {{&machine_pin_type}, 12, 0},
+    {{&machine_pin_type}, 13, 0},
+    {{&machine_pin_type}, 14, 0},
+    {{&machine_pin_type}, 15, 0},
+    {{&machine_pin_type}, 16, 0},
+    {{&machine_pin_type}, 17, 0},
+    {{&machine_pin_type}, 18, 0},
+    {{&machine_pin_type}, 19, 0},
+    {{&machine_pin_type}, 20, 0},
+    {{&machine_pin_type}, 21, 0},
+    {{&machine_pin_type}, 22, 0},
+    {{&machine_pin_type}, 23, 0},
+    {{&machine_pin_type}, 24, 0},
+    {{&machine_pin_type}, 25, 0},
+    {{&machine_pin_type}, 26, 0},
+    {{&machine_pin_type}, 27, 0},
+    {{&machine_pin_type}, 28, 0},
+    {{&machine_pin_type}, 29, 0},
+    {{&machine_pin_type}, 30, 0},
+    {{&machine_pin_type}, 31, 0},
+    {{&machine_pin_type}, 32, 0},
+    {{&machine_pin_type}, 33, 0},
+    {{&machine_pin_type}, 34, 0},
+    {{&machine_pin_type}, 35, 0},
+    {{&machine_pin_type}, 36, 0},
+    {{&machine_pin_type}, 37, 0},
+    {{&machine_pin_type}, 38, 0},
+    {{&machine_pin_type}, 39, 0},
+    {{&machine_pin_type}, 40, 0},
+    {{&machine_pin_type}, 41, 0},
+    {{&machine_pin_type}, 42, 0},
+    {{&machine_pin_type}, 43, 0},
+    {{&machine_pin_type}, 44, 0},
+    {{&machine_pin_type}, 45, 0},
+    {{&machine_pin_type}, 46, 0},
+    {{&machine_pin_type}, 47, 0},
+    {{&machine_pin_type}, 48, 0},
+    {{&machine_pin_type}, 49, 0},
+    {{&machine_pin_type}, 50, 0},
+    {{&machine_pin_type}, 51, 0},
+    {{&machine_pin_type}, 52, 0},
+    {{&machine_pin_type}, 53, 0},
 };
 
 static void gpio_set_mode(uint32_t pin, uint32_t mode) {
@@ -124,11 +125,34 @@ static void gpio_set_pull_mode(uint32_t pin, uint32_t pud) {
     delay_cycles(150);
     IOREG(GPPUD) = 0;
     IOREG(reg) = 0;
+    machine_pin_obj[pin].pull_mode = pud;
+}
+
+// Reading back the pull up/down settings is impossible for BCM2835.
+static uint32_t gpio_get_pull_mode(uint32_t pin) {
+    return machine_pin_obj[pin].pull_mode;
 }
 
 STATIC void machine_pin_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     machine_pin_obj_t *self = self_in;
-    mp_printf(print, "Pin(%u)", self->id);
+    mp_printf(print, "Pin(%u", self->id);
+    uint32_t mode = gpio_get_mode(self->id);
+    qstr mode_qst = MP_QSTR_IN;
+    if (mode == GPF_OUTPUT) {
+        mode_qst = MP_QSTR_OUT;
+    }
+    mp_printf(print, ", mode=Pin.%s", qstr_str(mode_qst));
+    if (mode == GPF_INPUT) {
+        uint32_t pull = gpio_get_pull_mode(self->id);
+        qstr pull_qst = MP_QSTR_PULL_NONE;
+        if (pull == GPPUD_EN_UP) {
+            pull_qst = MP_QSTR_PULL_UP;
+        } else if (pull == GPPUD_EN_DOWN) {
+            pull_qst = MP_QSTR_PULL_DOWN;
+        }
+        mp_printf(print, ", pull=Pin.%s", qstr_str(pull_qst));
+    }
+    mp_printf(print, ")");
 }
 
 // pin.init(mode, pull=None, *, value)
@@ -245,6 +269,7 @@ STATIC const mp_rom_map_elem_t machine_pin_locals_table[] = {
     // class constants
     { MP_ROM_QSTR(MP_QSTR_IN), MP_ROM_INT(GPF_INPUT) },
     { MP_ROM_QSTR(MP_QSTR_OUT), MP_ROM_INT(GPF_OUTPUT) },
+    { MP_ROM_QSTR(MP_QSTR_PULL_NONE), MP_ROM_INT(GPPUD_NONE) },
     { MP_ROM_QSTR(MP_QSTR_PULL_UP), MP_ROM_INT(GPPUD_EN_UP) },
     { MP_ROM_QSTR(MP_QSTR_PULL_DOWN), MP_ROM_INT(GPPUD_EN_DOWN) },
 };

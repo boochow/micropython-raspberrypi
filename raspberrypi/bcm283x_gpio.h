@@ -49,7 +49,7 @@
 #define GPF_ALT_5  2U
 
 // GPIO Pull-Up/Pull-Down (GPPUD) values
-#define GPPUD_DISABLE 0U
+#define GPPUD_NONE    0U
 #define GPPUD_EN_UP   1U
 #define GPPUD_EN_DOWN 2U
 
