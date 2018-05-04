@@ -18,7 +18,10 @@ INC += -I.
 INC += -I$(TOP)
 INC += -I$(BUILD)
 
-CFLAGS = $(INC) -Wall -std=c99 -nostdlib -marm -mcpu=arm1176jzf-s $(COPT)
+# compiler settings
+CWARN = -Wall -Werror
+CWARN += -Wpointer-arith -Wuninitialized
+CFLAGS = $(INC) $(CWARN) -std=c99 -nostdlib -marm -mcpu=arm1176jzf-s $(CFLAGS_MOD) $(COPT)
 
 #Debugging/Optimization
 ifeq ($(DEBUG), 1)
@@ -53,6 +56,8 @@ SRC_C = \
 	gpu.c \
 	gccollect.c \
 	mini-uart.c \
+	moduos.c \
+	fatfs_port.c \
 
 
 SRC_LIB = $(addprefix lib/,\
@@ -113,11 +118,16 @@ $(USBLIB):
 
 endif
 
+# FatFS VFS support
+SRC_LIB += $(addprefix lib/,\
+	oofatfs/ff.c \
+	oofatfs/option/unicode.c \
+	)
+
 # List of sources for qstr extraction
 SRC_QSTR += $(SRC_C) $(SRC_MOD) $(SRC_LIB)
 
 OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o) $(SRC_MOD:.c=.o) $(SRC_S:.s=.o) $(SRC_LIB:.c=.o))
-
 
 all: $(BUILD)/firmware.img
 

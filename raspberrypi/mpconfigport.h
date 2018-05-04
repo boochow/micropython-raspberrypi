@@ -41,22 +41,32 @@
 #define MICROPY_PY_COLLECTIONS      (0)
 #define MICROPY_PY_MATH             (1)
 #define MICROPY_PY_CMATH            (0)
-#define MICROPY_PY_IO               (0)
+#define MICROPY_PY_IO               (1)
+#define MICROPY_PY_IO_FILEIO        (1)
 #define MICROPY_PY_STRUCT           (0)
 #define MICROPY_PY_SYS              (0)
 #define MICROPY_PY_MACHINE          (1)
 #define MICROPY_PY_UTIME_MP_HAL     (1)
+#define MICROPY_PY_FRAMEBUF         (1)
+#define MICROPY_PY_VFS              (1)
 #define MICROPY_CPYTHON_COMPAT      (0)
 #define MICROPY_LONGINT_IMPL        (MICROPY_LONGINT_IMPL_MPZ)
 #define MICROPY_FLOAT_IMPL          (MICROPY_FLOAT_IMPL_FLOAT)
 #define MICROPY_MODULE_WEAK_LINKS   (1)
 #define MICROPY_USE_INTERNAL_PRINTF (1)
-#define MICROPY_PY_FRAMEBUF         (1)
 #define MICROPY_ENABLE_SCHEDULER    (1)
 #define MICROPY_SCHEDULER_DEPTH     (8)
 
 #define MICROPY_REPL_AUTO_INDENT    (1)
 #define MICROPY_KBD_EXCEPTION       (1)
+
+#define MICROPY_VFS                 (1)
+#define MICROPY_FATFS_ENABLE_LFN    (1)
+#define MICROPY_FATFS_RPATH         (2)
+#define MICROPY_FATFS_MAX_SS        (4096)
+#define MICROPY_FATFS_LFN_CODE_PAGE (437) /* 1=SFN/ANSI 437=LFN/U.S.(OEM) */
+#define MICROPY_VFS_FAT             (1)
+
 // type definitions for the specific machine
 
 #define malloc(n) m_malloc(n)
@@ -64,6 +74,8 @@
 #define realloc(p, n) m_realloc(p, n)
 
 #define MICROPY_MAKE_POINTER_CALLABLE(p) ((void*)((mp_uint_t)(p) | 1))
+
+#define MP_SSIZE_MAX (0x7fffffff)
 
 #define UINT_FMT "%u"
 #define INT_FMT "%d"
@@ -78,15 +90,30 @@ typedef long mp_off_t;
 extern const struct _mp_obj_module_t mcu_module;
 extern const struct _mp_obj_module_t utime_module;
 extern const struct _mp_obj_module_t gpu_module;
+extern const struct _mp_obj_module_t mp_module_uos;
+
+#define mp_type_fileio fatfs_type_fileio
+#define mp_type_textio fatfs_type_textio
+
+// use vfs's functions for import stat and builtin open
+#define mp_import_stat mp_vfs_import_stat
+#define mp_builtin_open mp_vfs_open
+#define mp_builtin_open_obj mp_vfs_open_obj
+
+// extra built in names to add to the global namespace
+#define MICROPY_PORT_BUILTINS \
+    { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },
 
 #define MICROPY_PORT_BUILTIN_MODULES                       \
     { MP_ROM_QSTR(MP_QSTR_mcu), MP_ROM_PTR(&mcu_module) }, \
     { MP_ROM_QSTR(MP_QSTR_utime), MP_ROM_PTR(&utime_module) }, \
     { MP_ROM_QSTR(MP_QSTR_gpu), MP_ROM_PTR(&gpu_module) }, \
     { MP_ROM_QSTR(MP_QSTR_machine), MP_ROM_PTR(&mp_module_machine) }, \
+    { MP_ROM_QSTR(MP_QSTR_uos), MP_ROM_PTR(&mp_module_uos) }, \
 
 #define MICROPY_PORT_BUILTIN_MODULE_WEAK_LINKS \
     { MP_ROM_QSTR(MP_QSTR_time), MP_ROM_PTR(&utime_module) }, \
+    { MP_ROM_QSTR(MP_QSTR_os), MP_ROM_PTR(&mp_module_uos) }, \
 
 // extra built in names to add to the global namespace
 #define MICROPY_PORT_BUILTINS \
