@@ -20,6 +20,11 @@ _start:
     ldr r0, =0x000000d3
     msr cpsr_c, r0
 
+    /// enable unaligned access support
+    mrc p15, 0, r0, c1, c0, 0
+    orr r0, r0, #0x00400000
+    mcr p15, 0, r0, c1, c0, 0
+    
     // jump to main
     pop {r0}
     bl arm_main
