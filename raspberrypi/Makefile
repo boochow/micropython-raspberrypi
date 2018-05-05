@@ -130,7 +130,7 @@ SRC_QSTR += $(SRC_C) $(SRC_MOD) $(SRC_LIB)
 
 OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o) $(SRC_MOD:.c=.o) $(SRC_S:.s=.o) $(SRC_LIB:.c=.o))
 
-all: $(BUILD)/firmware.img
+all: $(BUILD)/firmware.img $(BUILD)/config.txt
 
 list: $(BUILD)/firmware.elf
 	$(CROSS_COMPILE)objdump -d $(BUILD)/firmware.elf > $(BUILD)/firmware.list
@@ -143,10 +143,11 @@ $(BUILD)/firmware.elf: $(OBJ) $(USBLIB)
 $(BUILD)/firmware.img: $(BUILD)/firmware.elf
 	$(OBJCPY) $(BUILD)/firmware.elf -O binary $(BUILD)/firmware.img
 
-$(BUILD)/config.txt: config-template.txt $(BUILD)/firmware.img 
-	$(RM) -f $@
-	$(CP) $< $@
-	$(ECHO) "kernel=firmware.img" >> $@
+$(BUILD)/config.txt: config-template.txt
+	$(ECHO) "GEN $@"
+	$(Q)$(RM) -f $@
+	$(Q)$(CP) $< $@
+	$(Q)$(ECHO) "kernel=firmware.img" >> $@
 
 $(BUILD)/firmware-qemu.img: $(OBJ) $(USBLIB)
 	$(ECHO) "LINK $@"
