@@ -23,8 +23,14 @@ _start:
     /// enable unaligned access support
     mrc p15, 0, r0, c1, c0, 0
     orr r0, r0, #0x00400000
+    /// enable data cache
+//    orr r0, r0, #0x00000004
+    /// enable instruction cache
+//    orr r0, r0, #0x00001000
+    /// enable branch prediction
+//    orr r0, r0, #0x00000800
     mcr p15, 0, r0, c1, c0, 0
-    
+
     // jump to main
     pop {r0}
     bl arm_main
