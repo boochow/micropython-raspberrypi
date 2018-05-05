@@ -1,5 +1,0 @@
-DIR := $(DIR)hcd/
-
-ifeq ("$(LIB_DWC)", "1")
-include $(DIR)dwc/makefile.in
-endif
