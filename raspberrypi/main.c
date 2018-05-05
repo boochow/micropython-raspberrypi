@@ -100,6 +100,11 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
                 }
             }
         }
+#ifdef MICROPY_PY_USBHOST
+        if (!use_qemu) {
+            rpi_usb_host_deinit();
+        }
+#endif
         mp_deinit();
         printf("PYB: soft reboot\n");
     }
