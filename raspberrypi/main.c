@@ -81,6 +81,12 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_));
         mp_obj_list_init(mp_sys_argv, 0);
 
+        mp_hal_stdout_tx_strn("\r\n", 2);
+
+#if MICROPY_MODULE_FROZEN
+        pyexec_frozen_module("_boot.py");
+#endif
+
 #ifdef MICROPY_PY_USBHOST
         // USB host library initialization must be called after MicroPython's
         // initialization because USB host library allocates its memory blocks
@@ -109,10 +115,6 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         printf("PYB: soft reboot\n");
     }
     return 0;
-}
-
-mp_lexer_t *mp_lexer_new_from_file(const char *filename) {
-    mp_raise_OSError(MP_ENOENT);
 }
 
 void nlr_jump_fail(void *val) {

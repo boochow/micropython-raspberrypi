@@ -6,6 +6,9 @@ include mpconfigport.mk
 # qstr definitions (must come before including py.mk)
 QSTR_DEFS = qstrdefsport.h
 
+FROZEN_DIR ?= scripts
+FROZEN_MPY_DIR ?= modules
+
 # include py core make definitions
 include $(TOP)/py/py.mk
 
@@ -21,7 +24,8 @@ INC += -I$(BUILD)
 # compiler settings
 CWARN = -Wall -Werror
 CWARN += -Wpointer-arith -Wuninitialized
-CFLAGS = $(INC) $(CWARN) -std=c99 -nostdlib -marm -mcpu=arm1176jzf-s $(CFLAGS_MOD) $(COPT)
+CFLAGS_RPI = -marm -mcpu=arm1176jzf-s
+CFLAGS = $(INC) $(CWARN) -std=c99 -nostdlib $(CFLAGS_RPI) $(CFLAGS_MOD) $(COPT)
 
 #Debugging/Optimization
 ifeq ($(DEBUG), 1)
@@ -129,6 +133,23 @@ SRC_LIB += $(addprefix lib/,\
 SRC_QSTR += $(SRC_C) $(SRC_MOD) $(SRC_LIB)
 
 OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o) $(SRC_MOD:.c=.o) $(SRC_S:.s=.o) $(SRC_LIB:.c=.o))
+
+
+ifneq ($(FROZEN_DIR),)
+# To use frozen source modules, put your .py files in a subdirectory (eg scripts/)
+# and then invoke make with FROZEN_DIR=scripts (be sure to build from scratch).
+CFLAGS += -DMICROPY_MODULE_FROZEN_STR
+endif
+
+ifneq ($(FROZEN_MPY_DIR),)
+# To use frozen bytecode, put your .py files in a subdirectory (eg frozen/) and
+# then invoke make with FROZEN_MPY_DIR=frozen (be sure to build from scratch).
+CFLAGS += -DMICROPY_QSTR_EXTRA_POOL=mp_qstr_frozen_const_pool
+CFLAGS += -DMICROPY_MODULE_FROZEN_MPY
+endif
+
+.PHONY: run
+
 
 all: $(BUILD)/firmware.img $(BUILD)/config.txt
 
