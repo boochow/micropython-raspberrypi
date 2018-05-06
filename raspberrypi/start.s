@@ -20,16 +20,16 @@ _start:
     ldr r0, =0x000000d3
     msr cpsr_c, r0
 
+//    mrc p15, 0, r0, c1, c0, 0
     /// enable unaligned access support
-    mrc p15, 0, r0, c1, c0, 0
-    orr r0, r0, #0x00400000
+//    orr r0, r0, #0x00400000
     /// enable data cache
 //    orr r0, r0, #0x00000004
     /// enable instruction cache
 //    orr r0, r0, #0x00001000
     /// enable branch prediction
 //    orr r0, r0, #0x00000800
-    mcr p15, 0, r0, c1, c0, 0
+//    mcr p15, 0, r0, c1, c0, 0
 
     // jump to main
     pop {r0}

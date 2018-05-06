@@ -24,7 +24,7 @@ INC += -I$(BUILD)
 # compiler settings
 CWARN = -Wall -Werror
 CWARN += -Wpointer-arith -Wuninitialized
-CFLAGS_RPI = -marm -mcpu=arm1176jzf-s
+CFLAGS_RPI = -marm -mcpu=arm1176jzf-s -mno-unaligned-access 
 CFLAGS = $(INC) $(CWARN) -std=c99 -nostdlib $(CFLAGS_RPI) $(CFLAGS_MOD) $(COPT)
 
 #Debugging/Optimization
