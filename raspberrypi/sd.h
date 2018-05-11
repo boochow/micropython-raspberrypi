@@ -27,5 +27,7 @@
 #define SD_TIMEOUT          -1
 #define SD_ERROR            -2
 
+#define SDCARD_BLOCK_SIZE    512
+
 int sd_init();
 int sd_readblock(unsigned int lba, unsigned char *buffer, unsigned int num);

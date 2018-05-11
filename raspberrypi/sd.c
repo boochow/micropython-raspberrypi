@@ -23,10 +23,61 @@
  *
  */
 
-#include "gpio.h"
-#include "uart.h"
-#include "delays.h"
+#include <stdint.h>
+#include "bcm283x_gpio.h"
+#include "mphalport.h"
+#include "bcm283x_systimer.h"
 #include "sd.h"
+
+#define MMIO_BASE IO_BASE
+#define wait_msec(n) mp_hal_delay_ms(n)
+
+#define VERBOSE 0
+
+#if VERBOSE
+extern void uart_putc(char c);
+extern uint32_t uart_getc();
+extern void uart_write (const char* str, uint32_t len);
+
+#define uart_init()   void(void)
+#define uart_send(c)  {uart_putc(c); if (c == 0x0a) uart_putc(0x0d);}
+
+void uart_puts(char *s)  {
+    while(*s) {
+        uart_putc(*s);
+        if (*s == 0x0a)
+            uart_putc(0x0d);
+        s++;
+    }
+}
+
+void uart_hex(uint32_t d)  {
+    static const char hex[16] = "0123456789ABCDEF";
+    uart_putc(hex[(d >> 28) & 0xf]);
+    uart_putc(hex[(d >> 24) & 0xf]);
+    uart_putc(hex[(d >> 20) & 0xf]);
+    uart_putc(hex[(d >> 16) & 0xf]);
+    uart_putc(hex[(d >> 12) & 0xf]);
+    uart_putc(hex[(d >>  8) & 0xf]);
+    uart_putc(hex[(d >>  4) & 0xf]);
+    uart_putc(hex[d & 0xf]);
+}
+
+#else
+
+#define uart_init()   void(void)
+#define uart_send(c)
+#define uart_puts(s)
+#define uart_hex(d)
+
+#endif
+
+static inline void wait_cycles(int32_t count)
+{
+    __asm volatile("__delay_%=: subs %[count], %[count], #1; bne __delay_%=\n"
+                 : "=r"(count): [count]"0"(count) : "cc");
+}
+
 
 #define EMMC_ARG2           ((volatile unsigned int*)(MMIO_BASE+0x00300000))
 #define EMMC_BLKSIZECNT     ((volatile unsigned int*)(MMIO_BASE+0x00300004))
@@ -114,7 +165,8 @@
 #define ACMD41_CMD_CCS      0x40000000
 #define ACMD41_ARG_HC       0x51ff8000
 
-unsigned long sd_scr[2], sd_ocr, sd_rca, sd_err, sd_hv;
+unsigned long sd_scr[2], sd_ocr, sd_err, sd_hv;
+unsigned long long sd_rca;
 
 /**
  * Wait for data or command ready
@@ -250,21 +302,21 @@ int sd_clk(unsigned int f)
  */
 int sd_init()
 {
-    long r,cnt,ccs=0;
+    long long r,cnt,ccs=0;
     // GPIO_CD
-    r=*GPFSEL4; r&=~(7<<(7*3)); *GPFSEL4=r;
-    *GPPUD=2; wait_cycles(150); *GPPUDCLK1=(1<<15); wait_cycles(150); *GPPUD=0; *GPPUDCLK1=0;
-    r=*GPHEN1; r|=1<<15; *GPHEN1=r;
+    r=IOREG(GPFSEL4); r&=~(7<<(7*3)); IOREG(GPFSEL4)=r;
+    IOREG(GPPUD)=2; wait_cycles(150); IOREG(GPPUDCLK1)=(1<<15); wait_cycles(150); IOREG(GPPUD)=0; IOREG(GPPUDCLK1)=0;
+    r=IOREG(GPHEN1); r|=1<<15; IOREG(GPHEN1)=r;
 
     // GPIO_CLK, GPIO_CMD
-    r=*GPFSEL4; r|=(7<<(8*3))|(7<<(9*3)); *GPFSEL4=r;
-    *GPPUD=2; wait_cycles(150); *GPPUDCLK1=(1<<16)|(1<<17); wait_cycles(150); *GPPUD=0; *GPPUDCLK1=0;
+    r=IOREG(GPFSEL4); r|=(7<<(8*3))|(7<<(9*3)); IOREG(GPFSEL4)=r;
+    IOREG(GPPUD)=2; wait_cycles(150); IOREG(GPPUDCLK1)=(1<<16)|(1<<17); wait_cycles(150); IOREG(GPPUD)=0; IOREG(GPPUDCLK1)=0;
 
     // GPIO_DAT0, GPIO_DAT1, GPIO_DAT2, GPIO_DAT3
-    r=*GPFSEL5; r|=(7<<(0*3)) | (7<<(1*3)) | (7<<(2*3)) | (7<<(3*3)); *GPFSEL5=r;
-    *GPPUD=2; wait_cycles(150);
-    *GPPUDCLK1=(1<<18) | (1<<19) | (1<<20) | (1<<21);
-    wait_cycles(150); *GPPUD=0; *GPPUDCLK1=0;
+    r=IOREG(GPFSEL5); r|=(7<<(0*3)) | (7<<(1*3)) | (7<<(2*3)) | (7<<(3*3)); IOREG(GPFSEL5)=r;
+    IOREG(GPPUD)=2; wait_cycles(150);
+    IOREG(GPPUDCLK1)=(1<<18) | (1<<19) | (1<<20) | (1<<21);
+    wait_cycles(150); IOREG(GPPUD)=0; IOREG(GPPUDCLK1)=0;
     
     sd_hv = (*EMMC_SLOTISR_VER & HOST_SPEC_NUM) >> HOST_SPEC_NUM_SHIFT;
     uart_puts("EMMC: GPIO set up\n");
