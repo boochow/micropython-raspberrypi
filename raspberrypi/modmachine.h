@@ -3,5 +3,6 @@
 
 extern const mp_obj_type_t machine_pin_type;
 extern const mp_obj_type_t machine_timer_type;
+extern const mp_obj_type_t machine_sdcard_type;
 
 #endif // MICROPY_INCLUDED_RPI_MODMACHINE_H

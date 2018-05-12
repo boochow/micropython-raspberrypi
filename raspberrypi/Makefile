@@ -62,6 +62,8 @@ SRC_C = \
 	mini-uart.c \
 	moduos.c \
 	fatfs_port.c \
+	sd.c \
+	machine_sdcard.c \
 
 
 SRC_LIB = $(addprefix lib/,\
@@ -128,6 +130,7 @@ SRC_LIB += $(addprefix lib/,\
 	oofatfs/ff.c \
 	oofatfs/option/unicode.c \
 	)
+CFLAGS += -DMICROPY_MOUNT_SD_CARD=$(MICROPY_MOUNT_SD_CARD)
 
 # List of sources for qstr extraction
 SRC_QSTR += $(SRC_C) $(SRC_MOD) $(SRC_LIB)
