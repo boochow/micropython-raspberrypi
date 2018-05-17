@@ -151,7 +151,7 @@ CFLAGS += -DMICROPY_QSTR_EXTRA_POOL=mp_qstr_frozen_const_pool
 CFLAGS += -DMICROPY_MODULE_FROZEN_MPY
 endif
 
-.PHONY: run
+.PHONY: qemu
 
 
 all: $(BUILD)/firmware.img $(BUILD)/config.txt
@@ -178,7 +178,7 @@ $(BUILD)/firmware-qemu.img: $(OBJ) $(USBLIB)
 	$(Q)$(LD) --defsym=_load_addr=0x10000 $(LDFLAGS) -o $@.elf $^ $(LIBS)
 	$(OBJCPY) $@.elf -O binary $@
 
-run: $(BUILD)/firmware-qemu.img
+qemu: $(BUILD)/firmware-qemu.img
 	@qemu-system-arm \
 	-kernel $< \
 	-append "qemu" \
