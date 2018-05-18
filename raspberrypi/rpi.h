@@ -13,4 +13,7 @@ void rpi_setup_exception_vectors(void);
 extern void isr_irq_timer(void);
 extern void isr_irq_mini_uart(void);
 
+uint32_t rpi_freq_core();
+uint32_t rpi_freq_cpu();
+
 #endif // MICROPY_INCLUDED_RPI_RPI_H

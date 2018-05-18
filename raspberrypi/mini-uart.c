@@ -1,6 +1,7 @@
 #include "bcm283x_gpio.h"
 #include "bcm283x_aux.h"
 #include "bcm283x_it.h"
+#include "rpi.h"
 #include "mini-uart.h"
 #include "lib/utils/interrupt_char.h"
 
@@ -95,7 +96,8 @@ void mini_uart_init() {
 
     // data and speed (mini uart is always parity none, 1 start bit 1 stop bit)
     mini_uart->LCR = 3;    // 8 bits; Note: BCM2835 manual p14 is incorrect
-    mini_uart->BAUD = 270; // 1115200 bps @ core_freq=250
+    mini_uart->BAUD = ((rpi_freq_core() / 115200) >> 3) - 1;
+    //    mini_uart->BAUD = 270; // 1115200 bps @ core_freq=250
     //    mini_uart->BAUD = 434; // 1115200 bps @ core_freq=400
 
     // enable transmit and receive

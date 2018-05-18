@@ -47,3 +47,13 @@ void __attribute__((interrupt("IRQ"))) irq_handler(void) {
     }
 }
 
+// Clock speed
+// Todo: use VC mailbox interface to get real clock speed
+
+uint32_t rpi_freq_core() {
+    return 250000000;
+}
+
+uint32_t rpi_freq_cpu() {
+    return 700000000;
+}
