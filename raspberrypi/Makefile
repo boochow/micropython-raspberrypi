@@ -64,7 +64,8 @@ SRC_C = \
 	fatfs_port.c \
 	sd.c \
 	machine_sdcard.c \
-
+	i2c.c \
+	machine_i2c.c \
 
 SRC_LIB = $(addprefix lib/,\
 	utils/stdout_helpers.c \
