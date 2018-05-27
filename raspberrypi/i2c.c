@@ -16,74 +16,128 @@ void i2c_deinit(i2c_t *i2c) {
     i2c->C = i2c->C & ~C_I2CEN;
 }
 
-int i2c_write(i2c_t *i2c, const uint8_t *buf, const uint32_t buflen) {
-    i2c->DLEN = buflen;
-    i2c->S |= S_DONE | S_ERR | S_CLKT;
-    i2c->C = i2c->C & ~C_READ;
-    i2c->C |= C_CLEAR;
+void i2c_start(i2c_t *i2c) {
     i2c->C |= C_ST;
+}
+
+/*
+  i2c_abort_write(i2c) is used for generating pseudo stop condition.
+  Since bcm2835 I2C controller automatically generates stop condition
+  when the amount of transfer reaches to DLEN, it is impossible to
+  determine the timing of generating stop condition AFTER a transfer
+  started. So I made this function to "break" on-going transfer and
+  generate stop condition whenever it is necessary. The transfer used
+  with this function should set DLEN large enough to avoid automatic
+  stop condition generation.
+*/
+void i2c_abort_write(i2c_t *i2c) {
+    i2c->FIFO = 0x00; // dummy; this data will not be transferred
+    while (!(i2c->S & S_TXE));
+    i2c_clear_fifo(i2c);
+}
+
+int i2c_busy(i2c_t *i2c) {
+    return (i2c->S & S_TA) && ((i2c->S & S_DONE) == 0);
+}
+
+void i2c_clear_fifo(i2c_t *i2c) {
+    i2c->C |= C_CLEAR;
+}
+
+int i2c_result(i2c_t *i2c) {
+    if (i2c->S & S_ERR) {
+        // No Ack Error
+        i2c->S |= S_ERR;
+        return -1;
+    } else if (i2c->S & S_CLKT) {
+        // Timeout Error
+        i2c->S |= S_CLKT;
+        return -2;
+    } else if (i2c->S & S_DONE) {
+        // Transfer Done
+        i2c->S |= S_DONE;
+    }
+    return 0;
+}
+
+int i2c_write(i2c_t *i2c, const uint8_t *buf, const uint32_t buflen, bool stop) {
     int len = buflen;
+    bool continued = false;
+
+    if ((i2c->S & S_TA) && ((i2c->C & C_READ) == 0)){
+        // previous write transfer is still active (maybe stop=False)
+        continued = true;
+    } else {
+        // start new transfer
+        i2c->S |= S_DONE | S_ERR | S_CLKT;
+        i2c->C = i2c->C & ~C_READ;
+        while ((i2c->S & S_TXD) && (len != 0)){
+            i2c->FIFO = *buf++;
+            --len;
+        }
+        if (stop) {
+            i2c->DLEN = buflen;
+        } else {
+            // do not STOP after sending all data in buf
+            i2c->DLEN = 0xffff;
+        }
+        i2c_start(i2c);
+    }
     for(;;) {
-        if (i2c->S & S_ERR) {
-            // No Ack Error
-            i2c->S |= S_ERR;
-            return -1;
-        } else if (i2c->S & S_CLKT) {
-            // Timeout Error
-            i2c->S |= S_CLKT;
-            return -2;
-        } else if (i2c->S & S_DONE) {
-            // Transfer Done
-            i2c->S |= S_DONE;
+        if (i2c->S & (S_ERR | S_CLKT)) {
+            // error occured
+            return i2c_result(i2c);
+        } else if (stop && (i2c->S & S_DONE)) {
+            // transfer success
+            return buflen - len;
+        } else if (!stop && (len == 0)) {
+            // maybe transfer success
             return buflen - len;
         }
 
-        if ((i2c->S & S_TXD) && (len != 0)){
-            // FIFO has a room
+        if (continued && (len == 0)) {
+            if (stop) {
+                i2c_abort_write(i2c);
+                while (!(i2c->S & S_DONE));
+            }
+            return buflen;
+        }
+
+        while ((i2c->S & S_TXD) && (len != 0)) {
             i2c->FIFO = *buf++;
-            len--;
+            --len;
         }
     }
 }
 
 int i2c_read(i2c_t *i2c, uint8_t *buf, const uint32_t readlen) {
-    int len = readlen;
+    if ((i2c->S & S_TA) && ((i2c->C & C_READ) == 0)){
+        // previous write transfer is still active
+        i2c_abort_write(i2c);
+    } else {
+        i2c->S |= S_DONE | S_ERR | S_CLKT;
+    }
     i2c->DLEN = readlen;
-    i2c->S |= S_DONE | S_ERR | S_CLKT;
     i2c->C |= C_READ;
-    i2c->C |= C_CLEAR;
-    i2c->C |= C_ST;
+    i2c_start(i2c);
+    int len = readlen;
     for(;;) {
-        if (i2c->S & S_TA) {
-            continue;
-        } else if (i2c->S & S_ERR) {
-            // No Ack Error
-            i2c->S |= S_ERR;
-            return -1;
-        } else if (i2c->S & S_CLKT) {
-            // Timeout Error
-            i2c->S |= S_CLKT;
-            return -2;
+        if (i2c->S & (S_ERR | S_CLKT)) {
+            // error occured
+            return i2c_result(i2c);
         } else if (i2c->S & S_DONE) {
-            // Transfer Done
-            i2c->S |= S_DONE;
+            // transfer success
             return readlen - len;
         }
 
         if (i2c->S & S_RXD) {
-            uint8_t data = i2c->FIFO;
+            uint8_t data = i2c->FIFO & 0xffU;
             if (len != 0) {
                 *buf++ = data;
                 len--;
-            } else {
-                return readlen - len;
             }
         }
     }
-}
-
-void i2c_flush(i2c_t *i2c) {
-    i2c->C |= C_CLEAR;
 }
 
 void i2c_set_clock_speed(i2c_t *i2c, uint32_t speed) {
@@ -98,8 +152,4 @@ void i2c_set_clock_speed(i2c_t *i2c, uint32_t speed) {
 
 uint32_t i2c_get_clock_speed(i2c_t *i2c) {
     return rpi_freq_core() / i2c->DIV;
-}
-
-int i2c_busy(i2c_t *i2c) {
-    return i2c->S & S_TA;
 }

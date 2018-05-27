@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -82,17 +83,17 @@ STATIC void machine_i2c_print(const mp_print_t *print, mp_obj_t self_in, mp_prin
 /// \method writeto(addr, buf)
 /// \method readfrom(addr, num)
 
-STATIC mp_obj_t machine_i2c_writeto(mp_obj_t self_in, mp_obj_t slave, mp_obj_t buf) {
-    machine_i2c_obj_t *self = (machine_i2c_obj_t*) MP_OBJ_TO_PTR(self_in);
-    mp_int_t addr = (uint32_t) mp_obj_get_int(slave);
+STATIC mp_obj_t machine_i2c_writeto(size_t n_args, const mp_obj_t *args) {
+    machine_i2c_obj_t *self = (machine_i2c_obj_t*)MP_OBJ_TO_PTR(args[0]);
+    mp_int_t addr = mp_obj_get_int(args[1]);
     mp_buffer_info_t bufinfo;
-    mp_get_buffer_raise(buf, &bufinfo, MP_BUFFER_READ);
+    mp_get_buffer_raise(args[2], &bufinfo, MP_BUFFER_READ);
+    bool stop = (n_args == 3) ? true : mp_obj_is_true(args[3]);
 
     i2c_set_slave(self->i2c, addr);
-    int ret = i2c_write(self->i2c, bufinfo.buf, bufinfo.len);
-
+    int ret = i2c_write(self->i2c, bufinfo.buf, bufinfo.len, stop);
     if (ret < 0) {
-        i2c_flush(self->i2c);
+        i2c_clear_fifo(self->i2c);
         if (ret == -1) {
             mp_raise_OSError(MP_EIO);
         } else if (ret == -2) {
@@ -102,7 +103,7 @@ STATIC mp_obj_t machine_i2c_writeto(mp_obj_t self_in, mp_obj_t slave, mp_obj_t b
 
     return MP_OBJ_NEW_SMALL_INT(ret);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_3(machine_i2c_writeto_obj, machine_i2c_writeto);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_i2c_writeto_obj, 3, 4, machine_i2c_writeto);
 
 STATIC mp_obj_t machine_i2c_readfrom_into(mp_obj_t self_in, mp_obj_t slave, mp_obj_t buf) {
     machine_i2c_obj_t *self = (machine_i2c_obj_t*) MP_OBJ_TO_PTR(self_in);
@@ -112,7 +113,7 @@ STATIC mp_obj_t machine_i2c_readfrom_into(mp_obj_t self_in, mp_obj_t slave, mp_o
     i2c_set_slave(self->i2c, addr);
     int ret = i2c_read(self->i2c, (uint8_t*)bufinfo.buf, bufinfo.len);
     if (ret < 0) {
-        i2c_flush(self->i2c);
+        i2c_clear_fifo(self->i2c);
         if (ret == -1) {
             mp_raise_OSError(MP_EIO);
         } else if (ret == -2) {
@@ -132,7 +133,7 @@ STATIC mp_obj_t machine_i2c_readfrom(mp_obj_t self_in, mp_obj_t slave, mp_obj_t 
     i2c_set_slave(self->i2c, addr);
     int ret = i2c_read(self->i2c, (uint8_t*)vstr.buf, vstr.len);
     if (ret < 0) {
-        i2c_flush(self->i2c);
+        i2c_clear_fifo(self->i2c);
         if (ret == -1) {
             mp_raise_OSError(MP_EIO);
         } else if (ret == -2) {
@@ -150,7 +151,7 @@ STATIC mp_obj_t machine_i2c_scan(mp_obj_t self_in) {
     // 7-bit addresses 0b0000xxx and 0b1111xxx are reserved
     for (int addr = 0x08; addr < 0x78; ++addr) {
         while(i2c_busy(self->i2c));
-        i2c_flush(self->i2c);
+        mp_hal_delay_ms(1);
         i2c_set_slave(self->i2c, addr);
         uint8_t buf = 0;
         int ret;
@@ -158,7 +159,7 @@ STATIC mp_obj_t machine_i2c_scan(mp_obj_t self_in) {
             || ((0x50 <= addr) && (addr <= 0x5f))) {
             ret = i2c_read(self->i2c, &buf, 1);
         } else {
-            ret = i2c_write(self->i2c, &buf, 0);
+            ret = i2c_write(self->i2c, &buf, 0, true);
         }
         if (ret >= 0) {
             mp_obj_list_append(list, MP_OBJ_NEW_SMALL_INT(addr));
