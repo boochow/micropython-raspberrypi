@@ -31,7 +31,6 @@ void i2c_start(i2c_t *i2c) {
   stop condition generation.
 */
 void i2c_abort_write(i2c_t *i2c) {
-    i2c->FIFO = 0x00; // dummy; this data will not be transferred
     while (!(i2c->S & S_TXE));
     i2c_clear_fifo(i2c);
 }
@@ -78,7 +77,7 @@ int i2c_write(i2c_t *i2c, const uint8_t *buf, const uint32_t buflen, bool stop) 
         if (stop) {
             i2c->DLEN = buflen;
         } else {
-            // do not STOP after sending all data in buf
+            // do not STOP after sending all data in buf; see i2c_abort_write()
             i2c->DLEN = 0xffff;
         }
         i2c_start(i2c);
