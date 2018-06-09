@@ -45,10 +45,12 @@ STATIC mp_obj_t machine_i2c_init_helper(machine_i2c_obj_t *self, size_t n_args, 
     // set up GPIO alternate function
     switch(self->id) {
     case 0:
-        IOREG(GPFSEL0) = (GPF_ALT_0 << (3*0)) | (GPF_ALT_0 << (3*1));
+        gpio_set_mode(0, GPF_ALT_0);
+        gpio_set_mode(1, GPF_ALT_0);
         break;
     case 1:
-        IOREG(GPFSEL0) = (GPF_ALT_0 << (3*2)) | (GPF_ALT_0 << (3*3));
+        gpio_set_mode(2, GPF_ALT_0);
+        gpio_set_mode(3, GPF_ALT_0);
         break;
     case 2:
         break;
@@ -70,7 +72,26 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_KW(machine_i2c_init_obj, 0, machine_i2c_init);
 
 STATIC mp_obj_t machine_i2c_deinit(mp_obj_t self_in) {
     machine_i2c_obj_t *self = self_in;
+
+    // de-initialize I2C controller
     i2c_deinit(self->i2c);
+
+    // set GPIO to input mode
+    switch(self->id) {
+    case 0:
+        gpio_set_mode(0, GPF_INPUT);
+        gpio_set_mode(1, GPF_INPUT);
+        break;
+    case 1:
+        gpio_set_mode(2, GPF_INPUT);
+        gpio_set_mode(3, GPF_INPUT);
+        break;
+    case 2:
+        break;
+    default:
+        ;
+    }
+
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_i2c_deinit_obj, machine_i2c_deinit);
