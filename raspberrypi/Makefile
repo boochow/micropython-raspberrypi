@@ -52,6 +52,7 @@ SRC_C = \
 	modutime.c \
 	modgpu.c \
 	modmachine.c \
+	bcm283x_gpio.c \
 	machine_pin.c \
 	arm_exceptions.c \
 	arm_ex_handler_weak.c \

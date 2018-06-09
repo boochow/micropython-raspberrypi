@@ -53,4 +53,17 @@
 #define GPPUD_EN_UP   1U
 #define GPPUD_EN_DOWN 2U
 
+// set / get GPIO Alternate function
+void gpio_set_mode(uint32_t pin, uint32_t mode);
+uint32_t gpio_get_mode(uint32_t pin);
+
+// set output mode GPIO pin to low or high
+void gpio_set_level(uint32_t pin, uint32_t level);
+
+// get input mode GPIO pin level (low or high)
+uint32_t gpio_get_level(uint32_t pin);
+
+// set input mode GPIO pin pull up mode (off or pull up or pull down)
+void gpio_set_pull_mode(uint32_t pin, uint32_t pud);
+
 #endif // MICROPY_INCLUDED_RPI_BCM283X_GPIO_H

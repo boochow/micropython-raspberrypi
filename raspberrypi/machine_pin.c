@@ -71,65 +71,13 @@ STATIC machine_pin_obj_t machine_pin_obj[] = {
     {{&machine_pin_type}, 53, 0},
 };
 
-static void gpio_set_mode(uint32_t pin, uint32_t mode) {
-    uint32_t reg;
-    uint32_t pos;
-
-    reg = GPFSEL0 + pin / 10 * 4;
-    pos = (pin % 10) * 3;
-    mode = mode & 7U;
-    IOREG(reg) = (IOREG(reg) & ~(7 << pos)) | (mode << pos);
-}
-
-static uint32_t gpio_get_mode(uint32_t pin) {
-    uint32_t reg;
-    uint32_t pos;
-
-    reg = GPFSEL0 + pin / 10 * 4;
-    pos = (pin % 10) * 3;
-    return (IOREG(reg) >> pos) & 7U;
-}
-
-static void gpio_set_level(uint32_t pin, uint32_t level) {
-    uint32_t reg;
-
-    reg = (pin > 31) ? 4 : 0;
-    reg += (level == 0) ? GPCLR0 : GPSET0;
-    IOREG(reg) = 1 << (pin & 0x1F);
-}
-
-static uint32_t gpio_get_level(uint32_t pin) {
-    uint32_t reg;
-
-    reg = GPLEV0 + ((pin > 31) ? 4 : 0);
-    if (IOREG(reg) & (1 << (pin & 0x1f))) {
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-static inline void delay_cycles(int32_t count)
-{
-    __asm volatile("__delay_%=: subs %[count], %[count], #1; bne __delay_%=\n"
-                 : "=r"(count): [count]"0"(count) : "cc");
-}
-
-static void gpio_set_pull_mode(uint32_t pin, uint32_t pud) {
-    uint32_t reg;
-
-    IOREG(GPPUD) = pud;
-    delay_cycles(150);
-    reg = GPPUDCLK0 + (pin >> 5) * 4;
-    IOREG(reg) = 1 << (pin & 0x1f);
-    delay_cycles(150);
-    IOREG(GPPUD) = 0;
-    IOREG(reg) = 0;
+static void pin_set_pull_mode(uint32_t pin, uint32_t pud) {
+    gpio_set_pull_mode(pin, pud);
     machine_pin_obj[pin].pull_mode = pud;
 }
 
 // Reading back the pull up/down settings is impossible for BCM2835.
-static uint32_t gpio_get_pull_mode(uint32_t pin) {
+static uint32_t pin_get_pull_mode(uint32_t pin) {
     return machine_pin_obj[pin].pull_mode;
 }
 
@@ -143,7 +91,7 @@ STATIC void machine_pin_print(const mp_print_t *print, mp_obj_t self_in, mp_prin
     }
     mp_printf(print, ", mode=Pin.%s", qstr_str(mode_qst));
     if (mode == GPF_INPUT) {
-        uint32_t pull = gpio_get_pull_mode(self->id);
+        uint32_t pull = pin_get_pull_mode(self->id);
         qstr pull_qst = MP_QSTR_PULL_NONE;
         if (pull == GPPUD_EN_UP) {
             pull_qst = MP_QSTR_PULL_UP;
@@ -185,7 +133,7 @@ STATIC mp_obj_t machine_pin_obj_init_helper(const machine_pin_obj_t *self, size_
 
     // configure pull
     if (args[ARG_pull].u_obj != mp_const_none) {
-        gpio_set_pull_mode(self->id, mp_obj_get_int(args[ARG_pull].u_obj));
+        pin_set_pull_mode(self->id, mp_obj_get_int(args[ARG_pull].u_obj));
     }
 
     return mp_const_none;
