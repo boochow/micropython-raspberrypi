@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "py/mpconfig.h"
+#include "py/mperrno.h"
 #include "bcm283x_i2c.h"
 #include "rpi.h"
 #include "i2c.h"
@@ -47,11 +48,11 @@ int i2c_result(i2c_t *i2c) {
     if (i2c->S & S_ERR) {
         // No Ack Error
         i2c->S |= S_ERR;
-        return -1;
+        return -MP_EIO;
     } else if (i2c->S & S_CLKT) {
         // Timeout Error
         i2c->S |= S_CLKT;
-        return -2;
+        return -MP_ETIMEDOUT;
     } else if (i2c->S & S_DONE) {
         // Transfer Done
         i2c->S |= S_DONE;
@@ -81,6 +82,7 @@ int i2c_write(i2c_t *i2c, const uint8_t *buf, const uint32_t buflen, bool stop) 
             i2c->DLEN = 0xffff;
         }
         i2c_start(i2c);
+        do { } while (!(i2c->S & S_TA));
     }
     for(;;) {
         if (i2c->S & (S_ERR | S_CLKT)) {
