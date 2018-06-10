@@ -279,13 +279,13 @@ STATIC mp_obj_t machine_i2c_writeto_mem(size_t n_args, const mp_obj_t *pos_args,
     // do the transfer
     i2c_set_slave(self->i2c, args[ARG_addr].u_int);
 
-    int ret = i2c_write(self->i2c, buf_memaddr, memaddr_len, true);
+    int ret = i2c_write(self->i2c, buf_memaddr, memaddr_len, false);
     if (ret < 0) {
         i2c_clear_fifo(self->i2c);
         mp_raise_OSError(-ret);
     }
 
-    ret = i2c_write(self->i2c, bufinfo.buf, bufinfo.len, false);
+    ret = i2c_write(self->i2c, bufinfo.buf, bufinfo.len, true);
     if (ret < 0) {
         i2c_clear_fifo(self->i2c);
         mp_raise_OSError(-ret);
