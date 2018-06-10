@@ -24,6 +24,40 @@ const machine_i2c_obj_t machine_i2c_obj[] = {
     {{&machine_i2c_type}, 2, (i2c_t *) BSC2},
 };
 
+static void i2c_gpio_setup(uint32_t id, bool on) {
+    if (on) {
+        switch(id) {
+        case 0:
+            gpio_set_mode(0, GPF_ALT_0);
+            gpio_set_mode(1, GPF_ALT_0);
+            break;
+        case 1:
+            gpio_set_mode(2, GPF_ALT_0);
+            gpio_set_mode(3, GPF_ALT_0);
+            break;
+        case 2:
+            break;
+        default:
+            ;
+        }
+    } else {
+        switch(id) {
+        case 0:
+            gpio_set_mode(0, GPF_INPUT);
+            gpio_set_mode(1, GPF_INPUT);
+        break;
+        case 1:
+            gpio_set_mode(2, GPF_INPUT);
+            gpio_set_mode(3, GPF_INPUT);
+            break;
+        case 2:
+            break;
+        default:
+            ;
+        }
+    }
+}
+
 STATIC mp_obj_t machine_i2c_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_arg_check_num(n_args, n_kw, 1, 1, false);
     int id = mp_obj_get_int(args[0]);
@@ -31,6 +65,13 @@ STATIC mp_obj_t machine_i2c_make_new(const mp_obj_type_t *type, size_t n_args, s
         mp_raise_ValueError("invalid bus number");
     }
     machine_i2c_obj_t *i2c = (machine_i2c_obj_t*) &machine_i2c_obj[id];
+
+    // set up GPIO alternate function
+    i2c_gpio_setup(id, true);
+
+    // initialize I2C controller
+    i2c_init(i2c->i2c);
+
     return i2c;
 }
 
@@ -44,20 +85,7 @@ STATIC mp_obj_t machine_i2c_init_helper(machine_i2c_obj_t *self, size_t n_args, 
     mp_arg_parse_all(n_args, pos_args, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
     // set up GPIO alternate function
-    switch(self->id) {
-    case 0:
-        gpio_set_mode(0, GPF_ALT_0);
-        gpio_set_mode(1, GPF_ALT_0);
-        break;
-    case 1:
-        gpio_set_mode(2, GPF_ALT_0);
-        gpio_set_mode(3, GPF_ALT_0);
-        break;
-    case 2:
-        break;
-    default:
-        ;
-    }
+    i2c_gpio_setup(self->id, true);
 
     // initialize I2C controller
     i2c_init(self->i2c);
@@ -78,20 +106,7 @@ STATIC mp_obj_t machine_i2c_deinit(mp_obj_t self_in) {
     i2c_deinit(self->i2c);
 
     // set GPIO to input mode
-    switch(self->id) {
-    case 0:
-        gpio_set_mode(0, GPF_INPUT);
-        gpio_set_mode(1, GPF_INPUT);
-        break;
-    case 1:
-        gpio_set_mode(2, GPF_INPUT);
-        gpio_set_mode(3, GPF_INPUT);
-        break;
-    case 2:
-        break;
-    default:
-        ;
-    }
+    i2c_gpio_setup(self->id, false);
 
     return mp_const_none;
 }
