@@ -67,6 +67,8 @@ SRC_C = \
 	machine_sdcard.c \
 	i2c.c \
 	machine_i2c.c \
+	spi.c \
+	machine_spi.c \
 
 SRC_LIB = $(addprefix lib/,\
 	utils/stdout_helpers.c \
