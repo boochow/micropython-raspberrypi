@@ -38,7 +38,6 @@ int spi_transfer(spi_t *spi, uint8_t *buf_tx, const uint32_t wlen, uint8_t *buf_
     spi->CS = spi->CS | CS_TA;
 
     for(;;) {
-//        if (cnt == 0) {
         if (spi->CS & CS_TXD) {
             uint8_t data;
             if (txcnt < len) {
