@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include "py/mpconfig.h"
@@ -29,41 +30,41 @@ void spi_chip_select(spi_t *spi, int cs) {
 
 int spi_transfer(spi_t *spi, uint8_t *buf_tx, const uint32_t wlen, uint8_t *buf_rx, const uint32_t rlen, uint8_t padding) {
     int result;
-    int txlen = wlen;
-    int rxlen = rlen;
     int len = (wlen > rlen) ? wlen : rlen;
-    int cnt = len;
+    int txcnt = 0;
+    int rxcnt = 0;
 
     spi->CS |= CLEAR_TX | CLEAR_RX;
     spi->CS = spi->CS | CS_TA;
 
     for(;;) {
-        if (cnt == 0) {
-            if (spi->CS & CS_DONE) {
-                result = len;
-                break;
-            }
-            continue;
-        }
-        
+//        if (cnt == 0) {
         if (spi->CS & CS_TXD) {
             uint8_t data;
-            if (txlen > 0) {
-                data = *buf_tx++;
-                txlen--;
-            } else {
-                data = padding;
+            if (txcnt < len) {
+                if (txcnt < wlen) {
+                    data = *buf_tx++;
+                } else {
+                    data = padding;
+                }
+                spi->FIFO = data;
+                txcnt++;
             }
-            spi->FIFO = data;
         }
 
         if (spi->CS & CS_RXD) {
-            uint8_t data = spi->FIFO;
-            if (rxlen > 0) {
-                *buf_rx++ = data;
-                rxlen--;
+            if (rxcnt < len) {
+                uint8_t data = spi->FIFO;
+                if (rxcnt < rlen) {
+                    *buf_rx++ = data;
+                }
+                rxcnt++;
             }
-            cnt--;
+        }
+
+        if ((txcnt == len) && (rxcnt == len) && (spi->CS & CS_DONE)) {
+            result = len;
+            break;
         }
     }
     spi->CS = spi->CS & ~CS_TA;
