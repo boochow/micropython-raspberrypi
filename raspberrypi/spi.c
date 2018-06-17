@@ -27,41 +27,44 @@ void spi_chip_select(spi_t *spi, int cs) {
     spi->CS = (spi->CS & ~(CS_CS)) | (cs & 0x3U);
 }
 
-int spi_transfer(spi_t *spi, uint8_t *buf_tx, const uint32_t wlen, uint8_t *buf_rx, const uint32_t rlen) {
+int spi_transfer(spi_t *spi, uint8_t *buf_tx, const uint32_t wlen, uint8_t *buf_rx, const uint32_t rlen, uint8_t padding) {
     int result;
     int txlen = wlen;
     int rxlen = rlen;
+    int len = (wlen > rlen) ? wlen : rlen;
+    int cnt = len;
 
+    spi->CS |= CLEAR_TX | CLEAR_RX;
     spi->CS = spi->CS | CS_TA;
 
     for(;;) {
-        if (txlen > 0) {
-            if (spi->CS & CS_TXD) {
-                spi->FIFO = *buf_tx++;
-                txlen--;
+        if (cnt == 0) {
+            if (spi->CS & CS_DONE) {
+                result = len;
+                break;
             }
+            continue;
+        }
+        
+        if (spi->CS & CS_TXD) {
+            uint8_t data;
+            if (txlen > 0) {
+                data = *buf_tx++;
+                txlen--;
+            } else {
+                data = padding;
+            }
+            spi->FIFO = data;
         }
 
-        if (rxlen > 0) {
-            if (spi->CS & CS_RXD) {
-                *buf_rx++ = spi->FIFO;
+        if (spi->CS & CS_RXD) {
+            uint8_t data = spi->FIFO;
+            if (rxlen > 0) {
+                *buf_rx++ = data;
                 rxlen--;
             }
-        } else {
-            while (spi->CS & CS_RXR) {
-                spi->FIFO;
-            }
+            cnt--;
         }
-
-        if (spi->CS & CS_DONE) {
-            if (wlen == 0) {
-                result = rlen - rxlen;
-            } else {
-                result = wlen - txlen;
-            }
-            break;
-        }
-
     }
     spi->CS = spi->CS & ~CS_TA;
     return result;

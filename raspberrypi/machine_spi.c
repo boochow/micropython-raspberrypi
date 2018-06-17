@@ -123,7 +123,7 @@ STATIC mp_obj_t machine_spi_write(mp_obj_t self_in, mp_obj_t buf) {
     machine_spi_obj_t *self = (machine_spi_obj_t*) MP_OBJ_TO_PTR(self_in);
     mp_buffer_info_t bufinfo;
     mp_get_buffer_raise(buf, &bufinfo, MP_BUFFER_READ);
-    int ret = spi_transfer(self->spi, bufinfo.buf, bufinfo.len, NULL, 0);
+    int ret = spi_transfer(self->spi, bufinfo.buf, bufinfo.len, NULL, 0, 0);
     if (ret < 0) {
         mp_raise_OSError(-ret);
     }
@@ -142,7 +142,7 @@ STATIC mp_obj_t machine_spi_write_readinto(mp_obj_t self_in, mp_obj_t wbuf, mp_o
         mp_raise_ValueError("buffers must be the same length");
     }
     if (src.len > 0) {
-        int ret = spi_transfer(self->spi, src.buf, src.len, dest.buf, dest.len);
+        int ret = spi_transfer(self->spi, src.buf, src.len, dest.buf, dest.len, 0);
         if (ret < 0) {
             mp_raise_OSError(-ret);
         }
@@ -157,7 +157,7 @@ STATIC mp_obj_t machine_spi_readinto(size_t n_args, const mp_obj_t *args) {
     mp_get_buffer_raise(args[1], &bufinfo, MP_BUFFER_READ);
     if (bufinfo.len > 0) {
         uint8_t wchar = (n_args == 2) ? 0 : mp_obj_get_int(args[2]);
-        int ret = spi_transfer(self->spi, &wchar, 1, (uint8_t*)bufinfo.buf, bufinfo.len);
+        int ret = spi_transfer(self->spi, NULL, 0, (uint8_t*)bufinfo.buf, bufinfo.len, wchar);
         if (ret < 0) {
             mp_raise_OSError(-ret);
         }
@@ -172,7 +172,7 @@ STATIC mp_obj_t machine_spi_read(size_t n_args, const mp_obj_t *args) {
     vstr_init_len(&vstr, mp_obj_get_int(args[1]));
     if (vstr.len > 0) {
         uint8_t wchar = (n_args == 2) ? 0 : mp_obj_get_int(args[2]);
-        int ret = spi_transfer(self->spi, &wchar, 1, (uint8_t*)vstr.buf, vstr.len);
+        int ret = spi_transfer(self->spi, NULL, 0, (uint8_t*)vstr.buf, vstr.len, wchar);
         if (ret < 0) {
             mp_raise_OSError(-ret);
         }
