@@ -14,6 +14,7 @@
 
 #define MICROPY_PY_MACHINE_SPI_MSB (0)
 #define MICROPY_PY_MACHINE_SPI_LSB (1)
+#define SPI_DEFAULT_CLK (1000000)
 
 typedef struct _machine_spi_obj_t {
     mp_obj_base_t base;
@@ -49,33 +50,46 @@ static void spi_gpio_setup(uint32_t id, bool on) {
     }
 }
 
-STATIC mp_obj_t machine_spi_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
-    mp_arg_check_num(n_args, n_kw, 1, 1, false);
-    int id = mp_obj_get_int(args[0]);
+enum { ARG_baudrate, ARG_polarity, ARG_phase, ARG_bits, ARG_firstbit };
+static const mp_arg_t allowed_args[] = {
+    { MP_QSTR_baudrate,  MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = SPI_DEFAULT_CLK} },
+    { MP_QSTR_polarity,  MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
+    { MP_QSTR_phase,     MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
+    { MP_QSTR_bits,      MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 8} },
+    { MP_QSTR_firstbit,  MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = MICROPY_PY_MACHINE_SPI_MSB} },
+};
+
+STATIC mp_obj_t machine_spi_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
+    mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
+
+    // parse args
+    int id = mp_obj_get_int(all_args[0]);
     if (id != 0) {
         mp_raise_ValueError("invalid bus number");
     }
+
+    mp_arg_parse_all_kw_array(--n_args, n_kw, ++all_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+
     machine_spi_obj_t *spi = (machine_spi_obj_t*) &machine_spi_obj[id];
+
+    if (args[ARG_bits].u_int != 8) {
+        mp_raise_ValueError("bits must be 8");
+    }
+    if (args[ARG_firstbit].u_int != MICROPY_PY_MACHINE_SPI_MSB) {
+        mp_raise_ValueError("firstbit must be MSB");
+    }
 
     // set up GPIO alternate function
     spi_gpio_setup(id, true);
 
     // initialize SPI controller
-    spi_init(spi->spi, 0, 0);
+    spi_init(spi->spi, args[ARG_polarity].u_int, args[ARG_phase].u_int);
+    spi_set_clock_speed(spi->spi, args[ARG_baudrate].u_int);
 
     return spi;
 }
 
 STATIC mp_obj_t machine_spi_init_helper(machine_spi_obj_t *self, size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
-    enum { ARG_baudrate, ARG_polarity, ARG_phase, ARG_bits, ARG_firstbit };
-    static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_baudrate,  MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 1000000} },
-        { MP_QSTR_polarity,  MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
-        { MP_QSTR_phase,     MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
-        { MP_QSTR_bits,      MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 8} },
-        { MP_QSTR_firstbit,  MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = MICROPY_PY_MACHINE_SPI_MSB} },
-    };
-
     // parse args
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args, pos_args, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
@@ -116,7 +130,22 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_spi_deinit_obj, machine_spi_deinit);
 
 STATIC void machine_spi_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     machine_spi_obj_t *self = self_in;
-    mp_printf(print, "SPI(%u)", self->id);
+    spi_t *spi = (spi_t *) self->spi;
+    uint32_t baudrate = spi_get_clock_speed(spi);
+    uint32_t polarity = spi->CS & CS_CPOL;
+    uint32_t phase = spi->CS & CS_CPHA;
+
+    mp_printf(print, "SPI(%u", self->id);
+    if (baudrate != SPI_DEFAULT_CLK) {
+        mp_printf(print, ", baudrate=%u", baudrate);
+    }
+    if (polarity) {
+        mp_printf(print, ", polarity=1");
+    }
+    if (phase) {
+        mp_printf(print, ", phase=1");
+    }
+    mp_printf(print, ")");
 }
 
 STATIC mp_obj_t machine_spi_write(mp_obj_t self_in, mp_obj_t buf) {

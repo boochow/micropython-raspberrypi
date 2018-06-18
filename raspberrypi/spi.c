@@ -80,3 +80,11 @@ void spi_set_clock_speed(spi_t *spi, uint32_t speed) {
     }
     spi->CLK = val;
 }
+
+uint32_t spi_get_clock_speed(spi_t *spi) {
+    uint32_t val = spi->CLK;
+    if (val < 2) {
+        val = 65536;
+    }
+    return rpi_freq_core() / val;
+}
