@@ -44,7 +44,7 @@
 #define MICROPY_PY_CMATH            (0)
 #define MICROPY_PY_IO               (1)
 #define MICROPY_PY_IO_FILEIO        (1)
-#define MICROPY_PY_STRUCT           (0)
+#define MICROPY_PY_STRUCT           (1)
 #define MICROPY_PY_SYS              (0)
 #define MICROPY_PY_MACHINE          (1)
 #define MICROPY_PY_UTIME_MP_HAL     (1)
