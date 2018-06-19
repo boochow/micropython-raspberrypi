@@ -12,6 +12,8 @@
 #include "i2c.h"
 #include "modmachine.h"
 
+#define I2C_DEFAULT_FREQ (100000)
+
 typedef struct _machine_i2c_obj_t {
     mp_obj_base_t base;
     uint32_t id;
@@ -58,28 +60,33 @@ static void i2c_gpio_setup(uint32_t id, bool on) {
     }
 }
 
-STATIC mp_obj_t machine_i2c_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
-    mp_arg_check_num(n_args, n_kw, 1, 1, false);
-    int id = mp_obj_get_int(args[0]);
+
+enum { ARG_freq };
+static const mp_arg_t allowed_args[] = {
+    { MP_QSTR_freq,       MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = I2C_DEFAULT_FREQ} },
+};
+
+STATIC mp_obj_t machine_i2c_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
+    mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
+    // parse args
+    int id = mp_obj_get_int(all_args[0]);
     if (id > 2) {
         mp_raise_ValueError("invalid bus number");
     }
     machine_i2c_obj_t *i2c = (machine_i2c_obj_t*) &machine_i2c_obj[id];
+    mp_arg_parse_all_kw_array(--n_args, n_kw, ++all_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
     // set up GPIO alternate function
     i2c_gpio_setup(id, true);
 
     // initialize I2C controller
     i2c_init(i2c->i2c);
+    i2c_set_clock_speed(i2c->i2c, args[0].u_int);
 
     return i2c;
 }
 
 STATIC mp_obj_t machine_i2c_init_helper(machine_i2c_obj_t *self, size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
-    static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_freq,       MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 100000} },
-    };
-
     // parse args
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args, pos_args, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
@@ -114,7 +121,12 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_i2c_deinit_obj, machine_i2c_deinit);
 
 STATIC void machine_i2c_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     machine_i2c_obj_t *self = self_in;
-    mp_printf(print, "I2C(%u)", self->id);
+    uint32_t freq = i2c_get_clock_speed(self->i2c);
+    mp_printf(print, "I2C(%u", self->id);
+    if (freq != I2C_DEFAULT_FREQ) {
+        mp_printf(print, ", freq=%u", freq);
+    }
+    mp_printf(print, ")");
 }
 
 /// \method writeto(addr, buf)

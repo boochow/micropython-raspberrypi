@@ -152,5 +152,9 @@ void i2c_set_clock_speed(i2c_t *i2c, uint32_t speed) {
 }
 
 uint32_t i2c_get_clock_speed(i2c_t *i2c) {
-    return rpi_freq_core() / i2c->DIV;
+    uint32_t val = i2c->DIV & 0x7fff;
+    if (val == 0) {
+        val = 32768;
+    }
+    return rpi_freq_core() / val;
 }
