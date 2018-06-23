@@ -22,3 +22,11 @@ cd raspberrypi; make
 ## Modules and Classes
 
 See [wiki](https://github.com/boochow/micropython-raspberrypi/wiki).
+
+## Credits
+
+csud USB host driver by Alex Chadwick. (I modified the original [Chadderz121/csud: Chadderz's Simple USB Driver for Raspberry Pi](https://github.com/Chadderz121/csud) to support RPi zero/zero W. The modified version is [here](https://github.com/boochow/csud)).
+
+sd.c SD card driver by Zoltan Baldaszti. ([raspi3\-tutorial/0B\_readsector at master · bztsrc/raspi3\-tutorial](https://github.com/bztsrc/raspi3-tutorial/tree/master/0B_readsector))
+
+A lot of bare metal examples by David Welch. ([dwelch67/raspberrypi: Raspberry Pi ARM based bare metal examples](https://github.com/dwelch67/raspberrypi))
