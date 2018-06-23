@@ -11,6 +11,7 @@
 #include "mphalport.h"
 #include "mini-uart.h"
 #include "uart.h"
+#include "extmod/misc.h"
 
 // Time and delay
 
@@ -188,4 +189,7 @@ int mp_hal_stdin_rx_chr(void) {
 // Send string of given length
 void mp_hal_stdout_tx_strn(const char *str, mp_uint_t len) {
     uart_write(str,len);
+#ifdef MICROPY_PY_OS_DUPTERM
+    mp_uos_dupterm_tx_strn(str, len);
+#endif
 }
