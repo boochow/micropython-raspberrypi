@@ -110,11 +110,11 @@ SRC_S = \
     gchelper.s \
 
 # USB
-ifneq ($(MICROPY_PY_USBHOST),0)
+ifneq ($(MICROPY_HW_USBHOST),0)
 USBHOST_DIR=csud
 CSUDLIB=libcsud.a
 INC += -I$(USBHOST_DIR)/include
-CFLAGS += -DMICROPY_PY_USBHOST=$(MICROPY_PY_USBHOST)
+CFLAGS += -DMICROPY_PY_USBHOST=$(MICROPY_HW_USBHOST)
 SRC_MOD += usbhost.c \
 	machine_usb_mode.c \
 

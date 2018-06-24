@@ -174,7 +174,7 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         }
 #endif
 
-#ifdef MICROPY_PY_USBHOST
+#ifdef MICROPY_HW_USBHOST
         // USB host library initialization must be called after MicroPython's
         // initialization because USB host library allocates its memory blocks
         // using MemoryAllocate in usbhost.c which in turn calls m_alloc().
@@ -193,7 +193,7 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
                 }
             }
         }
-#ifdef MICROPY_PY_USBHOST
+#ifdef MICROPY_HW_USBHOST
         if (!use_qemu) {
             rpi_usb_host_deinit();
         }
