@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "usbhost.h"
 
 // options to control how MicroPython is built
 #define MICROPY_DEBUG_VERBOSE       (0)
@@ -132,5 +133,5 @@ extern const struct _mp_obj_module_t mp_module_uos;
 
 #define MICROPY_PORT_ROOT_POINTERS \
     const char *readline_hist[8]; \
-    struct _hcd_globals_t *hcd_globals; \
+    hcd_globals_t *hcd_globals; \
 
