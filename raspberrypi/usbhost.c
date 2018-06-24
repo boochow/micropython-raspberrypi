@@ -15,21 +15,29 @@ extern void *Core;
 extern void *Host;
 extern void *Power;
 extern void *Devices;
+extern void *databuffer;
+extern void *keyboards;
+extern void *mice;
 
-typedef struct _hcd_globals_t {
-    void *core;
-    void *host;
-    void *power;
-    void *devices;
-} hcd_globals_t;
+extern hcd_globals_t *hcd_globals;
+static u32 usb_initialised = 0;
+
+void* MemoryAllocate(u32 length);
 
 void rpi_usb_host_init(void) {
-    UsbInitialise();
-    MP_STATE_PORT(hcd_globals) = m_new(hcd_globals_t, 1);
-    MP_STATE_PORT(hcd_globals)->core = Core;
-    MP_STATE_PORT(hcd_globals)->host = Host;
-    MP_STATE_PORT(hcd_globals)->power = Power;
-    MP_STATE_PORT(hcd_globals)->devices = Devices;
+    if (usb_initialised == 0) {
+        MP_STATE_PORT(hcd_globals) = MemoryAllocate(sizeof(hcd_globals_t));
+        UsbInitialise();
+        MP_STATE_PORT(hcd_globals)->core = Core;
+        MP_STATE_PORT(hcd_globals)->host = Host;
+        MP_STATE_PORT(hcd_globals)->power = Power;
+        MP_STATE_PORT(hcd_globals)->devices = Devices;
+        MP_STATE_PORT(hcd_globals)->databuffer = databuffer;
+        MP_STATE_PORT(hcd_globals)->keyboards = keyboards;
+        MP_STATE_PORT(hcd_globals)->mice = mice;
+
+        usb_initialised = 1;
+    }
 }
 
 void rpi_usb_host_process(void) {
@@ -37,9 +45,15 @@ void rpi_usb_host_process(void) {
 }
 
 void rpi_usb_host_deinit(void) {
-    //    HcdStop();
-    //    HcdDeinitialise();
-    m_del(hcd_globals_t, MP_STATE_PORT(hcd_globals), 1);
+    if (usb_initialised != 0) {
+        extern Result HcdStop();
+        HcdStop();
+        extern Result HcdDeinitialise();
+        HcdDeinitialise();
+        m_del(hcd_globals_t, MP_STATE_PORT(hcd_globals), 1);
+        
+        usb_initialised = 0;
+    }
 }
 
 /* platform dependent functions called from functions in libcsud.a */
@@ -84,4 +98,3 @@ void PowerOffUsb() {
 void MicroDelay(u32 delay) {
     mp_hal_delay_us(delay);
 }
-

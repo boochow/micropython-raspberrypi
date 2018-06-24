@@ -14,6 +14,21 @@
 #define IRQ_DISABLE2      IOREG(IO_BASE + 0xB220)
 #define IRQ_DISABLE_BASIC IOREG(IO_BASE + 0xB224)
 
+// IRQ_PEND_BASIC bits
+#define IRQ_ARM_TIMER    (1)
+#define IRQ_MAILBOX      (1 << 1)
+#define IRQ_DOORBELL0    (1 << 2)
+#define IRQ_DOORBELL1    (1 << 3)
+    
+// IRQ_PEND1 bits
 #define IRQ_SYSTIMER(X)  (1 << (X))
+#define IRQ_AUX          (1 << 29)
 
+// IRQ_PEND2 bits
+#define IRQ_GPIO(X)      (1 << (17 + X))
+#define IRQ_I2C          (1 << 21)
+#define IRQ_SPI          (1 << 22)
+#define IRQ_PCM          (1 << 23)
+#define IRQ_UART         (1 << 25)
+    
 #endif // MICROPY_INCLUDED_RPI_BCM283X_IT_H

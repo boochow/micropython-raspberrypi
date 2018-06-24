@@ -14,23 +14,19 @@
 
 #include "arm_exceptions.h"
 #include "rpi.h"
-#include "uart-qemu.h"
+#include "mphalport.h"
 #include "usbhost.h"
 
-void do_str(const char *src, mp_parse_input_kind_t input_kind) {
-    nlr_buf_t nlr;
-    if (nlr_push(&nlr) == 0) {
-        mp_lexer_t *lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, src, strlen(src), 0);
-        qstr source_name = lex->source_name;
-        mp_parse_tree_t parse_tree = mp_parse(lex, input_kind);
-        mp_obj_t module_fun = mp_compile(&parse_tree, source_name, MP_EMIT_OPT_NONE, true);
-        mp_call_function_0(module_fun);
-        nlr_pop();
-    } else {
-        // uncaught exception
-        mp_obj_print_exception(&mp_plat_print, (mp_obj_t)nlr.ret_val);
-    }
-}
+#if MICROPY_MOUNT_SD_CARD
+
+#include "lib/oofatfs/ff.h"
+#include "extmod/vfs_fat.h"
+#include "sd.h"
+#include "modmachine.h"
+
+extern void sdcard_init_vfs(fs_user_mount_t *vfs, int part);
+
+#endif
 
 void clear_bss(void) {
     extern void * _bss_start;
@@ -61,7 +57,71 @@ char *arm_boot_tag_cmdline(const int32_t *ptr) {
     return NULL;
 }
 
-extern void __attribute__((interrupt("IRQ"))) irq_timer(void);
+#if MICROPY_MOUNT_SD_CARD
+
+STATIC bool init_sdcard_fs(void) {
+    bool first_part = true;
+    for (int part_num = 1; part_num <= 4; ++part_num) {
+        // create vfs object
+        fs_user_mount_t *vfs_fat = m_new_obj_maybe(fs_user_mount_t);
+        mp_vfs_mount_t *vfs = m_new_obj_maybe(mp_vfs_mount_t);
+        if (vfs == NULL || vfs_fat == NULL) {
+            printf("vfs=NULL\n");
+            break;
+        }
+        vfs_fat->flags = FSUSER_FREE_OBJ;
+        sdcard_init_vfs(vfs_fat, part_num);
+
+        // try to mount the partition
+        FRESULT res = f_mount(&vfs_fat->fatfs);
+
+        if (res != FR_OK) {
+            // couldn't mount
+            m_del_obj(fs_user_mount_t, vfs_fat);
+            m_del_obj(mp_vfs_mount_t, vfs);
+        } else {
+            // mounted via FatFs, now mount the SD partition in the VFS
+            if (first_part) {
+                // the first available partition is traditionally called "sd" for simplicity
+                vfs->str = "/sd";
+                vfs->len = 3;
+            } else {
+                // subsequent partitions are numbered by their index in the partition table
+                if (part_num == 2) {
+                    vfs->str = "/sd2";
+                } else if (part_num == 2) {
+                    vfs->str = "/sd3";
+                } else {
+                    vfs->str = "/sd4";
+                }
+                vfs->len = 4;
+            }
+            vfs->obj = MP_OBJ_FROM_PTR(vfs_fat);
+            vfs->next = NULL;
+            for (mp_vfs_mount_t **m = &MP_STATE_VM(vfs_mount_table);; m = &(*m)->next) {
+                if (*m == NULL) {
+                    *m = vfs;
+                    break;
+                }
+            }
+
+            if (first_part) {
+                // use SD card as current directory
+                MP_STATE_PORT(vfs_cur) = vfs;
+            }
+            first_part = false;
+        }
+    }
+
+    if (first_part) {
+        printf("PYB: can't mount SD card\n");
+        return false;
+    } else {
+        return true;
+    }
+}
+
+#endif
 
 int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
     bool use_qemu = false;
@@ -74,27 +134,50 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
     mp_stack_set_top(&_estack);
     mp_stack_set_limit((char*)&_estack - (char*)&_heap_end - 1024);
 
+    // check ARM boot tag and set up standard I/O
     if (atag && (strcmp("qemu", arm_boot_tag_cmdline(atag)) == 0)) {
         use_qemu = true;
     }
 
-    // use UART if arm boot tag holds "qemu" in cmdline else use Mini-UART.
-    uart_init(!use_qemu);
-
-    if (!use_qemu) {
-        exception_vector.irq = irq_timer;
+    if (use_qemu) {
+        uart_init(UART_QEMU);
+    } else {
+        uart_init(MINI_UART);
+        arm_irq_disable();
         arm_exceptions_init();
         arm_irq_enable();
     }
-         
+
+    // start MicroPython
     while (true) {
         gc_init (&_heap_start, &_heap_end );
-
         mp_init();
-        
-        do_str("for i in range(1):pass", MP_PARSE_FILE_INPUT);
+        mp_obj_list_init(mp_sys_path, 0);
+        mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_)); // current dir (or base dir of the script)
+        mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_lib));
+        mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_));
+        mp_obj_list_init(mp_sys_argv, 0);
 
-#ifdef MICROPY_PY_USBHOST
+        mp_hal_stdout_tx_strn("\r\n", 2);
+
+#if MICROPY_MODULE_FROZEN
+        pyexec_frozen_module("_boot.py");
+#endif
+
+#if MICROPY_MOUNT_SD_CARD
+        if (!use_qemu) {
+            bool mounted_sdcard = false;
+            mounted_sdcard = init_sdcard_fs();
+            if (mounted_sdcard) {
+                printf("Mounted SD card !\n\r");
+            }
+        }
+#endif
+
+#ifdef MICROPY_HW_USBHOST
+        // USB host library initialization must be called after MicroPython's
+        // initialization because USB host library allocates its memory blocks
+        // using MemoryAllocate in usbhost.c which in turn calls m_alloc().
         if (!use_qemu) {
             rpi_usb_host_init();
         }
@@ -110,27 +193,16 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
                 }
             }
         }
+#ifdef MICROPY_HW_USBHOST
+        if (!use_qemu) {
+            rpi_usb_host_deinit();
+        }
+#endif
         mp_deinit();
         printf("PYB: soft reboot\n");
     }
     return 0;
 }
-
-void gc_collect(void) {
-}
-
-mp_lexer_t *mp_lexer_new_from_file(const char *filename) {
-    mp_raise_OSError(MP_ENOENT);
-}
-
-mp_import_stat_t mp_import_stat(const char *path) {
-    return MP_IMPORT_STAT_NO_EXIST;
-}
-
-mp_obj_t mp_builtin_open(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs) {
-    return mp_const_none;
-}
-MP_DEFINE_CONST_FUN_OBJ_KW(mp_builtin_open_obj, 1, mp_builtin_open);
 
 void nlr_jump_fail(void *val) {
     while (1);

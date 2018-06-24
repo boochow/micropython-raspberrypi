@@ -52,7 +52,7 @@ static void timer_disable(const int num) {
     machine_timer_obj[num].active = false;
 }
 
-void __attribute__((interrupt("IRQ"))) irq_timer(void) {
+void isr_irq_timer(void) {
     int timer_value;
 
     if (IRQ_PEND1 & IRQ_SYSTIMER(0)) {
@@ -133,10 +133,18 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_timer_deinit_obj, machine_timer_deinit)
 
 STATIC void machine_timer_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     machine_timer_obj_t *self = self_in;
-    if (self->active) {
-        mp_printf(print, "Timer(%u); period=%u, mode=%u, counter=%u, compare_reg = %u", self->id, self->period, self->mode, self->counter, systimer->C[self->id]);
-    } else {
-        mp_printf(print, "Timer(%u); *inactive*", self->id);
+    mp_printf(print, "Timer(%u, period=%u", self->id, self->period);
+    qstr mode_qstr = MP_QSTR_ONE_SHOT;
+    if (self->mode == PERIODIC) {
+        mode_qstr = MP_QSTR_PERIODIC;
+    } else if (self->mode == FREE) {
+        mode_qstr = MP_QSTR_FREE;
+    }
+    mp_printf(print, ", mode=Timer.%s", qstr_str(mode_qstr));
+    mp_printf(print, ", counter=%u)", self->counter);
+    mp_printf(print, " # compare=%u", systimer->C[self->id]);
+    if (!self->active) {
+        mp_printf(print, "; inactive");
     }
 }
 
@@ -186,6 +194,21 @@ STATIC mp_obj_t machine_timer_callback(mp_obj_t self_in, mp_obj_t callback) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_timer_callback_obj, machine_timer_callback);
 
+/// \method compare_register([value])
+/// Get or set the timer's current compare register value.
+STATIC mp_obj_t machine_timer_compare_register(size_t n_args, const mp_obj_t *args) {
+    machine_timer_obj_t *self = args[0];
+    if (n_args == 1) {
+        // get
+        return mp_obj_new_int_from_uint(systimer->C[self->id]);
+    } else {
+        // set
+        systimer->C[self->id] = mp_obj_get_int(args[1]);
+        return mp_const_none;
+    }
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_timer_compare_register_obj, 1, 2, machine_timer_compare_register);
+
 STATIC const mp_rom_map_elem_t machine_timer_locals_table[] = {
     // instance methods
     { MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&machine_timer_init_obj) },
@@ -193,6 +216,7 @@ STATIC const mp_rom_map_elem_t machine_timer_locals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_counter), MP_ROM_PTR(&machine_timer_counter_obj) },
     { MP_ROM_QSTR(MP_QSTR_period), MP_ROM_PTR(&machine_timer_period_obj) },
     { MP_ROM_QSTR(MP_QSTR_callback), MP_ROM_PTR(&machine_timer_callback_obj) },
+    { MP_ROM_QSTR(MP_QSTR_compare_register), MP_ROM_PTR(&machine_timer_compare_register_obj) },
 
     // class constants
     { MP_ROM_QSTR(MP_QSTR_ONE_SHOT), MP_ROM_INT((int) ONE_SHOT) },

@@ -5,58 +5,7 @@
 #include "py/mphal.h"
 #include "py/obj.h"
 
-#include "bcm283x.h"
-
-#define MAILBOX_READ   IOREG(IO_BASE + 0xB880)
-#define MAILBOX_POLL   IOREG(IO_BASE + 0xB890)
-#define MAILBOX_SENDER IOREG(IO_BASE + 0xB894)
-#define MAILBOX_STATUS IOREG(IO_BASE + 0xB898)
-#define MAILBOX_CONFIG IOREG(IO_BASE + 0xB89C)
-#define MAILBOX_WRITE  IOREG(IO_BASE + 0xB8A0)
-
-#define MAIL_FULL      0x80000000
-#define MAIL_EMPTY     0x40000000
-
-void mailbox_write(uint8_t chan, uint32_t msg) {
-    if ((msg & 0xfU) == 0) {
-        while ((MAILBOX_STATUS & MAIL_FULL) != 0) {
-        }
-        MAILBOX_WRITE = msg | chan;
-    }
-}
-
-uint32_t mailbox_read(uint8_t chan) {
-    uint32_t data;
-    do {
-        while (MAILBOX_STATUS & MAIL_EMPTY) {
-        }
-    } while (((data = MAILBOX_READ) & 0xfU) != chan);
-    return data >> 4;
-}
-
-typedef volatile struct                                          \
-__attribute__((aligned(16))) _fb_info_t {
-    uint32_t screen_w;   //write display width
-    uint32_t screen_h;   //write display height
-    uint32_t w;          //write framebuffer width
-    uint32_t h;          //write framebuffer height
-    uint32_t rowbytes;   //write 0 to get value
-    uint32_t bpp;        //write bits per pixel
-    uint32_t offset_x;   //write x offset of framebuffer
-    uint32_t offset_y;   //write y offset of framebuffer
-    uint32_t buf_addr;   //write 0 to get value
-    uint32_t buf_size;   //write 0 to get value
-} fb_info_t;
-
-void rpi_fb_init(fb_info_t *fb_info) {
-    fb_info->buf_addr = 0;
-    fb_info->buf_size = 0;
-    fb_info->rowbytes = 0;
-    while(fb_info->buf_addr == 0) {
-        mailbox_write(1, (uint32_t) (fb_info + 0x40000000));
-        mailbox_read(1);
-    }
-}
+#include "gpu.h"
 
 static fb_info_t fb_info = {1920, 1080, 480, 270, 0, 16, 0, 0, 0, 0};
 
