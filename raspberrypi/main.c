@@ -58,6 +58,7 @@ char *arm_boot_tag_cmdline(const int32_t *ptr) {
 }
 
 #if MICROPY_MOUNT_SD_CARD
+
 STATIC bool init_sdcard_fs(void) {
     bool first_part = true;
     for (int part_num = 1; part_num <= 4; ++part_num) {
@@ -119,6 +120,7 @@ STATIC bool init_sdcard_fs(void) {
         return true;
     }
 }
+
 #endif
 
 int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
@@ -163,10 +165,12 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
 #endif
 
 #if MICROPY_MOUNT_SD_CARD
-        bool mounted_sdcard = false;
-        mounted_sdcard = init_sdcard_fs();
-        if (mounted_sdcard) {
-            printf("Mounted SD card !\n\r");
+        if (!use_qemu) {
+            bool mounted_sdcard = false;
+            mounted_sdcard = init_sdcard_fs();
+            if (mounted_sdcard) {
+                printf("Mounted SD card !\n\r");
+            }
         }
 #endif
 
