@@ -27,7 +27,7 @@ def _mount_initrd(num_blocks):
     except:
         print("error: _mount_initrd")
 
-def _boot_main():
+def _create_ramdisk():
     _mount_initrd(2048)
     f=open('RAM disk.txt', 'w')
     f.write('''
@@ -36,4 +36,16 @@ Format = FAT16
 ''')
     f.close()
 
+def _boot_main():
+    _create_ramdisk()
+
 _boot_main()
+
+# uncomment below if you want to use frame buffer console
+"""
+from FBConsole import FBConsole, RPiScreen
+import gpu, os
+gpu.fb_init(480,270,screen_w=1920,screen_h=1080)
+theScreen = FBConsole(RPiScreen(480,270))
+os.dupterm(theScreen)
+"""
