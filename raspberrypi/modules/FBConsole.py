@@ -13,7 +13,8 @@ class RPiScreen(framebuf.FrameBuffer):
         pass
 
 class FBConsole:
-    def __init__(self, framebuf, bgcolor=0, fgcolor=-1, width=-1, height=-1):
+    def __init__(self, framebuf, bgcolor=0, fgcolor=-1, width=-1, height=-1, readobj=None):
+        self.readobj = readobj
         self.fb = framebuf
         if width > 0:
             self.width=width
@@ -79,7 +80,10 @@ class FBConsole:
             pass
 
     def readinto(self, buf, nbytes=0):
-        return None
+        if readobj != None:
+            return readobj.readinto(buf, nbytes)
+        else:
+            return None
         
     def _newline(self):
         self.y += 1
