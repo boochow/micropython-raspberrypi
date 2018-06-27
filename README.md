@@ -25,7 +25,7 @@ See [wiki](https://github.com/boochow/micropython-raspberrypi/wiki).
 
 The First bare metal Raspberry Pi port by Stefan Naumann. ([Bare\-Metal Raspberry Pi port by naums · Pull Request \#3522 · micropython/micropython](https://github.com/micropython/micropython/pull/3522))
 
-csud USB host driver by Alex Chadwick. (I modified the original [Chadderz121/csud: Chadderz's Simple USB Driver for Raspberry Pi](https://github.com/Chadderz121/csud) to support RPi zero/zero W. The modified version is [here](https://github.com/boochow/csud)).
+csud USB host driver by Alex Chadwick. ([Chadderz121/csud: Chadderz's Simple USB Driver for Raspberry Pi](https://github.com/Chadderz121/csud) I modified this to support RPi zero/zero W. The modified version is [here](https://github.com/boochow/csud)).
 
 sd.c SD card driver by Zoltan Baldaszti. ([raspi3\-tutorial/0B\_readsector at master · bztsrc/raspi3\-tutorial](https://github.com/bztsrc/raspi3-tutorial/tree/master/0B_readsector))
 
