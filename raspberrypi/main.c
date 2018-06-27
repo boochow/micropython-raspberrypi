@@ -146,6 +146,7 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         arm_irq_disable();
         arm_exceptions_init();
         arm_irq_enable();
+        rpi_init();
     }
 
     // start MicroPython

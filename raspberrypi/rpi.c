@@ -47,6 +47,12 @@ void __attribute__((interrupt("IRQ"))) irq_handler(void) {
     }
 }
 
+// Initialize Raspberry Pi peripherals
+
+void rpi_init() {
+// any initialization 
+}
+
 // Clock speed
 // Todo: use VC mailbox interface to get real clock speed
 
