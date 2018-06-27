@@ -36,16 +36,20 @@ Format = FAT16
 ''')
     f.close()
 
+def set_fb_console():
+    from FBConsole import FBConsole, RPiScreen
+    import gpu, os
+    gpu.fb_init(480,270,screen_w=1920,screen_h=1080)
+    theScreen = FBConsole(RPiScreen(480,270))
+    os.dupterm(theScreen)
+
 def _boot_main():
     _create_ramdisk()
+    import machine
+    try:
+        if (machine.usb_mode() == 'host'):
+            set_fb_console()
+    except:
+        pass
 
 _boot_main()
-
-# uncomment below if you want to use frame buffer console
-"""
-from FBConsole import FBConsole, RPiScreen
-import gpu, os
-gpu.fb_init(480,270,screen_w=1920,screen_h=1080)
-theScreen = FBConsole(RPiScreen(480,270))
-os.dupterm(theScreen)
-"""

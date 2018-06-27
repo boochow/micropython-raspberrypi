@@ -5,6 +5,7 @@
 #include "py/runtime.h"
 #include "py/mphal.h"
 #include "modmachine.h"
+#include "machine_usb_mode.h"
 
 
 STATIC const mp_rom_map_elem_t machine_module_globals_table[] = {
@@ -14,6 +15,9 @@ STATIC const mp_rom_map_elem_t machine_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_SD), MP_ROM_PTR(&machine_sdcard_type) },
     { MP_ROM_QSTR(MP_QSTR_I2C), MP_ROM_PTR(&machine_i2c_type) },
     { MP_ROM_QSTR(MP_QSTR_SPI), MP_ROM_PTR(&machine_spi_type) },
+#ifdef MICROPY_HW_USBHOST
+    { MP_ROM_QSTR(MP_QSTR_usb_mode), MP_ROM_PTR(&machine_usb_mode_obj) },
+#endif
 };
 STATIC MP_DEFINE_CONST_DICT(machine_module_globals, machine_module_globals_table);
 

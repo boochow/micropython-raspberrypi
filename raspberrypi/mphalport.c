@@ -156,7 +156,32 @@ int usb_keyboard_getc() {
             if (key != keys[0] && key != keys[1] && key != keys[2] && \
                 key != keys[3] && key != keys[4] && key != keys[5] && key) {
                 mod = KeyboardGetModifiers(kbd_addr);
-                result = keycode2char(key,  mod.RightShift | mod.LeftShift);
+                if (mod.RightControl | mod.LeftControl) {
+                    unsigned char c = (unsigned char) keycode2char(key, 1);
+                    switch(c) {
+                    case 'A': result = 1; break;
+                    case 'B': result = 2; break;
+                    case 'C': result = 3; break;
+                    case 'D': result = 4; break;
+                    case 'E': result = 5; break;
+                    case 'F': result = 6; break;
+                    case 'K': result = 11; break;
+                    case 'N': result = 14; break;
+                    case 'P': result = 16; break;
+                    case 'U': result = 21; break;
+                    default: result = 0;
+                    }
+                } else {
+                    result = keycode2char(key, mod.RightShift | mod.LeftShift);
+                    // convert arrow keys to EMACS binding controls
+                    switch(result) {
+                    case 0x1c: result = 2; break;
+                    case 0x1d: result = 6; break;
+                    case 0x1f: result = 14; break;
+                    case 0x1e: result = 16; break;
+                    default: break;
+                    }
+                }
             }
             keys[i] = key;
         }
