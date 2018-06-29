@@ -175,8 +175,8 @@ int usb_keyboard_getc() {
                     result = keycode2char(key, mod.RightShift | mod.LeftShift);
                     // convert arrow keys to EMACS binding controls
                     switch(result) {
-                    case 0x1c: result = 2; break;
-                    case 0x1d: result = 6; break;
+                    case 0x1d: result = 2; break;
+                    case 0x1c: result = 6; break;
                     case 0x1f: result = 14; break;
                     case 0x1e: result = 16; break;
                     default: break;
