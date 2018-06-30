@@ -82,8 +82,8 @@ void MemoryCopy(void* destination, void* source, u32 length) {
 
 Result PowerOnUsb() {
 	u32 result;
-    mailbox_write(0, 0x8);
-    result = mailbox_read(0);
+    mailbox_write(MB_CH_POWER, 0x8);
+    result = mailbox_read(MB_CH_POWER);
     return  (result == 8) ? OK : ErrorDevice;
 }
 

@@ -13,6 +13,18 @@
 #define MAIL_FULL      0x80000000U
 #define MAIL_EMPTY     0x40000000U
 
+#define MB_CH_POWER    0
+#define MB_CH_FRAMEBUF 1
+#define MB_CH_VUART    2
+#define MB_CH_VCHIQ    3
+#define MB_CH_LED      4
+#define MB_CH_BUTTON   5
+#define MB_CH_TOUCH    6
+#define MB_CH_RESERVED 7
+#define MB_CH_PROP_ARM 8
+#define MB_CH_PROP_VC  9
+
+
 void mailbox_write(uint8_t chan, uint32_t msg);
 uint32_t mailbox_read(uint8_t chan);
 
