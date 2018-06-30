@@ -37,6 +37,7 @@ Format = FAT16
     f.close()
 
 def set_fb_console():
+    global theScreen
     from FBConsole import FBConsole, RPiScreen
     import os
     theScreen = FBConsole(RPiScreen(480,270))
