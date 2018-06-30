@@ -7,6 +7,7 @@
 #include "bcm283x_gpio.h"
 #include "bcm283x_aux.h"
 #include "bcm283x_mailbox.h"
+#include "vc_property.h"
 #include "rpi.h"
 
 static uint32_t freq_cpu  = 700000000;
@@ -65,8 +66,6 @@ uint32_t rpi_freq_cpu() {
 // Initialize Raspberry Pi peripherals
 
 #define MB_GET_CLK_RATE (0x00030002)
-#define MB_PROP_REQUEST (0)
-#define MB_PROP_SUCCESS (0x80000000)
 #define CLKID_ARM       (3)
 #define CLKID_CORE      (4)
 enum MB_BUFF { BUFSIZE=0, MB_REQ_RES, \
