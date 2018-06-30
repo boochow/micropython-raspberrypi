@@ -4,6 +4,7 @@
 
 #include "py/runtime.h"
 #include "mphalport.h"
+#include "bcm283x_mailbox.h"
 #include "usbhost.h"
 
 /* USB host controller driver static variables */
@@ -80,16 +81,10 @@ void MemoryCopy(void* destination, void* source, u32 length) {
 }
 
 Result PowerOnUsb() {
-	volatile u32* mailbox;
 	u32 result;
-
-	mailbox = (u32*)0x2000B880;
-	while (mailbox[6] & 0x80000000);
-	mailbox[8] = 0x80;
-	do {
-		while (mailbox[6] & 0x40000000);		
-	} while (((result = mailbox[0]) & 0xf) != 0);
-	return result == 0x80 ? OK : ErrorDevice;
+    mailbox_write(0, 0x8);
+    result = mailbox_read(0);
+    return  (result == 8) ? OK : ErrorDevice;
 }
 
 void PowerOffUsb() {
