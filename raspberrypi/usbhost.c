@@ -84,6 +84,7 @@ Result PowerOnUsb() {
 	u32 result;
     mailbox_write(MB_CH_POWER, 0x8);
     result = mailbox_read(MB_CH_POWER);
+    mp_hal_delay_ms(1);
     return  (result == 8) ? OK : ErrorDevice;
 }
 
