@@ -6,9 +6,9 @@
 #include "py/mperrno.h"
 #include "bcm283x_mailbox.h"
 #include "vc_property.h"
-#include "machine_vc_property.h"
+#include "gpu_vc_property.h"
 
-STATIC mp_obj_t machine_vc_property(size_t n_args, const mp_obj_t *args) {
+STATIC mp_obj_t gpu_vc_property(size_t n_args, const mp_obj_t *args) {
     mp_obj_t result = mp_const_none;
 
     if (n_args > 0) {
@@ -109,27 +109,26 @@ STATIC mp_obj_t machine_vc_property(size_t n_args, const mp_obj_t *args) {
             if (tag == 0x0003000c) {
                 memsize = buf[5];
             }
-
+/*
             for (int i = 0; i < buf[0] >> 2; i++) {
                 printf("%08x ", (unsigned int) buf[i]);
             }
             printf("\n");
-
+*/
             // request to get property through mailbox
             mailbox_write(MB_CH_PROP_ARM, (uint32_t) (BUSADDR(buf)) >> 4);
             mailbox_read(MB_CH_PROP_ARM);
-            
+/*            
             for (int i = 0; i < 5 + (((buf[4]  + 3) & 0x7fffffff) >> 2); i++) {
                 printf("%08x ", (unsigned int) buf[i]);
             }
             printf("\n");
-
+*/
             if (buf[1] == MB_PROP_SUCCESS) {
                 if (buf[4] & MB_PROP_SUCCESS) {
                     uint32_t datalen = buf[4] & 0x7fffffff;
                     if (datalen == 0) {
                         // no data to return
-                        printf("success: datalen=0\n");
                         result = mp_const_none;
                     } else if (datalen == 4) {
                         if (tag == 0x0003000c) { // allocate mem
@@ -181,4 +180,4 @@ STATIC mp_obj_t machine_vc_property(size_t n_args, const mp_obj_t *args) {
     }
     return result;
 }
-MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_vc_property_obj, 1, 8, machine_vc_property);
+MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(gpu_vc_property_obj, 1, 8, gpu_vc_property);

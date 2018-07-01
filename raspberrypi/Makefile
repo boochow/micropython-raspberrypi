@@ -70,7 +70,7 @@ SRC_C = \
 	spi.c \
 	machine_spi.c \
 	vc_property.c \
-	machine_vc_property.c \
+	gpu_vc_property.c \
 
 SRC_LIB = $(addprefix lib/,\
 	utils/stdout_helpers.c \

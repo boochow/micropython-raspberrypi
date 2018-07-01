@@ -6,6 +6,7 @@
 #include "py/obj.h"
 
 #include "gpu.h"
+#include "gpu_vc_property.h"
 
 static fb_info_t fb_info = {1920, 1080, 480, 270, 0, 16, 0, 0, 0, 0};
 
@@ -82,6 +83,7 @@ STATIC const mp_rom_map_elem_t gpu_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_fb_init), MP_ROM_PTR(&gpu_fb_init_obj) },
     { MP_ROM_QSTR(MP_QSTR_fb_data), MP_ROM_PTR(&gpu_fb_data_obj) },
     { MP_ROM_QSTR(MP_QSTR_fb_rowbytes), MP_ROM_PTR(&gpu_fb_rowbytes_obj) },
+    { MP_ROM_QSTR(MP_QSTR_vc_property), MP_ROM_PTR(&gpu_vc_property_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(gpu_module_globals, gpu_module_globals_table);
