@@ -24,6 +24,8 @@
 #define MB_CH_PROP_ARM 8
 #define MB_CH_PROP_VC  9
 
+#define BUSADDR(a)      (0x40000000 | (unsigned int) a)
+#define PHYSICALADDR(a) (0x3fffffff & (unsigned int) a)
 
 void mailbox_write(uint8_t chan, uint32_t msg);
 uint32_t mailbox_read(uint8_t chan);
