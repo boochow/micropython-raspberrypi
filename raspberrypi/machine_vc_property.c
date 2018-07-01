@@ -30,76 +30,123 @@ STATIC mp_obj_t machine_vc_property(size_t n_args, const mp_obj_t *args) {
             }
 
             // allocate buffer for mailbox
-            buf = (uint32_t *) m_new(uint8_t, bufsize + 24);
-            buf[0] = bufsize + 24; // 24 bytes for buf[0..4] and end tag
+            // 24 bytes for buf[0..4] and end tag, + padding, 16 bytes aligned
+            unsigned int msgsize = (bufsize + 24 + 15) & 0xfffffff0;
+//            unsigned int msgsize = bufsize + 24;
+            buf = (uint32_t *) m_new(uint8_t, msgsize);
+            buf[0] = msgsize; 
             buf[1] = MB_PROP_REQUEST;
             buf[2] = tag;
             buf[3] = bufsize;
             buf[4] = 0;
 
             // store args into mailbox
-            int len = 0;
+            int endtag = 5;  // index to where endtag should be written
+            int memsize = 0; // used for allocate memory tag (0x0003000c)
+            mp_buffer_info_t bufinfo; // used when an argment is buffer type
             if ((n_args == 2) && (! mp_obj_is_integer(args[1]))) {
-                mp_buffer_info_t bufinfo;
                 // second arg may be buffer type or list or tuple
                 if (mp_get_buffer(args[1], &bufinfo, MP_BUFFER_READ)) {
-                    buf[3] = bufinfo.len;
-                    memcpy(&buf[5], bufinfo.buf, bufinfo.len);
-                    len = (bufinfo.len + 3) >> 2;
+                    if ((tag == 0x0003000d) || (tag == 0x0003000e) || \
+                        (tag == 0x0003000f) || (tag == 0x00030014)) {
+                        // copy args[1] to buf as a handle
+                        buf[5] = (unsigned int) MP_OBJ_TO_PTR(args[1]);
+                        endtag += 1;
+                    } else {
+                        // copy data pointed from args[1] to buf
+                        if (bufinfo.len < buf[3]) {
+                            buf[3] = bufinfo.len;
+                            memcpy(&buf[5], bufinfo.buf, bufinfo.len);
+                        } else {
+                            memcpy(&buf[5], bufinfo.buf, buf[3]);
+                        }
+                        endtag += (buf[3] + 3) >> 2; // +3 for 4 bytes aligned
+                    }
                 } else if (mp_obj_get_type(args[1]) == &mp_type_list) {
+                    // copy all integers in the list to buf
                     mp_obj_list_t *o = (mp_obj_list_t *) args[1];
-                    buf[3] = o->len * 4;
-                    for (int i = 0; i < o->len; i++) {
+                    int maxargs = o->len;
+                    if (maxargs > buf[3] >> 2) {
+                        maxargs = buf[3] >> 2;
+                    }
+                    for (int i = 0; i < maxargs; i++) {
                         buf[5 + i] = mp_obj_get_int(o->items[i]);
                     }
-                    len = o->len;
+                    endtag += maxargs;
                 } else if (mp_obj_get_type(args[1]) == &mp_type_tuple) {
+                    // copy all integers in the tuple to buf
                     mp_obj_tuple_t *o = (mp_obj_tuple_t *) args[1];
-                    buf[3] = o->len * 4;
-                    for (int i = 0; i < o->len; i++) {
+                    int maxargs = o->len;
+                    if (maxargs > buf[3] >> 2) {
+                        maxargs = buf[3] >> 2;
+                    }
+                    for (int i = 0; i < maxargs; i++) {
                         buf[5 + i] = mp_obj_get_int(o->items[i]);
                     }
-                    len = o->len;
+                    endtag += maxargs;
                 } else {
                     mp_raise_ValueError("Invalid arguments");
                 }
             } else {
-                // all arguments should be integers
-                for (int i = 1; i < n_args; i++) {
+                // copy all arguments to buf as integer
+                int maxargs = n_args - 1;
+                if (maxargs > buf[3] >> 2) {
+                    maxargs = buf[3] >> 2;
+                }
+                for (int i = 1; i <= maxargs; i++) {
                     if (mp_obj_is_integer(args[i])) {
                         buf[4 + i] = mp_obj_get_int(args[i]);
                     } else {
                         mp_raise_ValueError("Invalid arguments");
                     }
                 }
-                len = n_args - 1;
+                endtag += buf[3] >> 2;
             }
             // end tag
-            buf[5 + len] = 0;
+            buf[endtag] = 0;
 
-//            for (int i = 0; i < 5 + n_args; i++) {
-//                printf("%08x ", (unsigned int) buf[i]);
-//            }
-//            printf("\n");
+            // keep memsize for later use because buf[5] will be overwritten
+            if (tag == 0x0003000c) {
+                memsize = buf[5];
+            }
 
-            // request property through mailbox
-            mailbox_write(MB_CH_PROP_ARM, (uint32_t) (buf + 0x40000000) >> 4);
+            for (int i = 0; i < buf[0] >> 2; i++) {
+                printf("%08x ", (unsigned int) buf[i]);
+            }
+            printf("\n");
+
+            // request to get property through mailbox
+            mailbox_write(MB_CH_PROP_ARM, (uint32_t) (BUSADDR(buf)) >> 4);
             mailbox_read(MB_CH_PROP_ARM);
             
-//            for (int i = 0; i < 5 + n_args; i++) {
-//                printf("%08x ", (unsigned int) buf[i]);
-//            }
-//            printf("\n");
+            for (int i = 0; i < 5 + (((buf[4]  + 3) & 0x7fffffff) >> 2); i++) {
+                printf("%08x ", (unsigned int) buf[i]);
+            }
+            printf("\n");
 
             if (buf[1] == MB_PROP_SUCCESS) {
                 if (buf[4] & MB_PROP_SUCCESS) {
                     uint32_t datalen = buf[4] & 0x7fffffff;
                     if (datalen == 0) {
                         // no data to return
+                        printf("success: datalen=0\n");
                         result = mp_const_none;
                     } else if (datalen == 4) {
-                        // return an int32 value
-                        result = mp_obj_new_int(buf[5]);
+                        if (tag == 0x0003000c) { // allocate mem
+                            result = mp_obj_new_bytearray_by_ref(memsize, (void *) buf[5]);
+                        } else if (tag == 0x00030014) { // get dispmanx handle
+                            if (buf[5] == 0) {
+                                result = mp_obj_new_bytearray_by_ref(bufinfo.len, (void *) buf[6]);
+                            } else {
+                                mp_raise_OSError(MP_EIO);
+                            }
+                        } else {
+                            // return an int32 value
+                            result = mp_obj_new_int(buf[5]);
+                        }
+                    } else if (tag == 0x00040001) {
+                        // return frame buffer or memory block as bytearray
+                        result = mp_obj_new_bytearray_by_ref(buf[6], (void *) buf[5]);
                     } else if ((tag == 0x00010003) || (tag == 0x00030020)) {
                         // return bytes (MAC address or EDID block)
                         result = mp_obj_new_bytes((unsigned char *)&buf[5], datalen);
@@ -123,15 +170,15 @@ STATIC mp_obj_t machine_vc_property(size_t n_args, const mp_obj_t *args) {
                     }
                 } else {
                     // failed getting this property value
-                    mp_raise_OSError(MP_EIO);
+                    mp_raise_ValueError("Failed getting property value");
                 }
             } else {
                 // failed getting property values
-                mp_raise_OSError(MP_EIO);
+                mp_raise_ValueError("Mailbox returned 0x80000001");
             }
             m_free(buf);
         }
     }
     return result;
 }
-MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_vc_property_obj, 1, 5, machine_vc_property);
+MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_vc_property_obj, 1, 8, machine_vc_property);
