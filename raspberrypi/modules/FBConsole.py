@@ -1,5 +1,6 @@
 import gpu
 import framebuf
+import uio
 
 class RPiScreen(framebuf.FrameBuffer):
     def __init__(self, width, height):
@@ -12,7 +13,7 @@ class RPiScreen(framebuf.FrameBuffer):
     def show(self):
         pass
 
-class FBConsole:
+class FBConsole(uio.IOBase):
     def __init__(self, framebuf, bgcolor=0, fgcolor=-1, width=-1, height=-1, readobj=None):
         self.readobj = readobj
         self.fb = framebuf
@@ -81,6 +82,7 @@ class FBConsole:
             self.fb.show()
         except:
             pass
+        return len(buf)
 
     def readinto(self, buf, nbytes=0):
         if readobj != None:
