@@ -2,11 +2,9 @@
 #include "bcm283x_mailbox.h"
 
 void mailbox_write(uint8_t chan, uint32_t msg) {
-    if ((msg & 0xfU) == 0) {
-        while ((MAILBOX_STATUS & MAIL_FULL) != 0) {
-        }
-        MAILBOX_WRITE = msg | chan;
+    while ((MAILBOX_STATUS & MAIL_FULL) != 0) {
     }
+    MAILBOX_WRITE = (msg << 4) | chan;
 }
 
 uint32_t mailbox_read(uint8_t chan) {

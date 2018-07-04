@@ -17,10 +17,10 @@ SECTIONS {
     . = . + 0x1000;
     _heap_start = .;
     _ram_start = .;
-    . = . + 0x8000000;
+    . = . + 0x4000000;
     _heap_end = .;
     
-    . = . + 0x7F00000;
+    . = . + 0x3F80000;
     _estack = .;
     _ram_end = .;
 }

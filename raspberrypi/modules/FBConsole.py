@@ -1,5 +1,6 @@
 import gpu
 import framebuf
+import uio
 
 class RPiScreen(framebuf.FrameBuffer):
     def __init__(self, width, height):
@@ -12,7 +13,7 @@ class RPiScreen(framebuf.FrameBuffer):
     def show(self):
         pass
 
-class FBConsole:
+class FBConsole(uio.IOBase):
     def __init__(self, framebuf, bgcolor=0, fgcolor=-1, width=-1, height=-1, readobj=None):
         self.readobj = readobj
         self.fb = framebuf
@@ -48,6 +49,7 @@ class FBConsole:
         self.w =  self.width // px
         self.h =  self.height // px
         self.cls()
+        self._draw_cursor()
 
     def _putc(self, c):
         c = chr(c)
@@ -57,13 +59,14 @@ class FBConsole:
         elif c == '\x08':
             self._backspace()
         elif c >= ' ':
-            self.fb.text(c, self.x * 8, self.y * 8, self.fgcolor)
+            self.fb.text(c, self.x * 8, self.y * self.lineheight, self.fgcolor)
             self.x += 1
             if self.x >= self.w:
                 self._newline()
                 self.x = 0
 
     def write(self, buf):
+        self._erase_current()
         i = 0
         while i < len(buf):
             c = buf[i]
@@ -74,10 +77,12 @@ class FBConsole:
             else:
                 self._putc(c)
             i += 1
+        self._draw_cursor()
         try:
             self.fb.show()
         except:
             pass
+        return len(buf)
 
     def readinto(self, buf, nbytes=0):
         if readobj != None:
@@ -89,11 +94,11 @@ class FBConsole:
         self.y += 1
         if self.y >= self.h:
             self.fb.scroll(0, -8)
-            self.fb.fill_rect(0, self.height - 8, self.width, 8, 0)
+            self.fb.fill_rect(0, self.height - self.lineheight, self.width, self.lineheight, self.bgcolor)
             self.y = self.h - 1
 
     def _erase_current(self):
-        self.fb.fill_rect(self.x * 8, self.y * 8, 8, 8, 0)
+        self.fb.fill_rect(self.x * 8, self.y * self.lineheight, 8, self.lineheight, self.bgcolor)
 
     def _backspace(self):
         if self.x == 0:
@@ -102,4 +107,7 @@ class FBConsole:
                 self.x = self.w - 1
         else:
             self.x -= 1
-        self.fb.fill_rect(self.x * 8, self.y * 8, 8, 8, 0)
+        self.fb.fill_rect(self.x * 8, self.y * self.lineheight, 8, self.lineheight, self.bgcolor)
+
+    def _draw_cursor(self):
+        self.fb.hline(self.x * 8, self.y * self.lineheight + 7, 8, self.fgcolor)
