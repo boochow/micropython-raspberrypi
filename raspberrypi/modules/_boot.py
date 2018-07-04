@@ -36,12 +36,15 @@ Format = FAT16
 ''')
     f.close()
 
-def set_fb_console():
+def set_fb_console(on=True):
     global theScreen
     from FBConsole import FBConsole, RPiScreen
     import os
-    theScreen = FBConsole(RPiScreen(480,270))
-    os.dupterm(theScreen)
+    if on:
+        theScreen = FBConsole(RPiScreen(480,270))
+        os.dupterm(theScreen)
+    else:
+        theScreen = os.dupterm(None)
 
 def _boot_main():
     _create_ramdisk()
@@ -52,4 +55,5 @@ def _boot_main():
     except:
         pass
 
+print("_boot.py")
 _boot_main()
