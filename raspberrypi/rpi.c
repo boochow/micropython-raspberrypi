@@ -92,7 +92,7 @@ static void get_clock_value() {
 
     clkinfo[ENDTAG] = 0;
 
-    mailbox_write(MB_CH_PROP_ARM, (uint32_t) (clkinfo + 0x40000000) >> 4);
+    mailbox_write(MB_CH_PROP_ARM, (uint32_t) BUSADDR(clkinfo) >> 4);
     mailbox_read(MB_CH_PROP_ARM);
 
     if (clkinfo[MB_REQ_RES] == MB_PROP_SUCCESS) {
