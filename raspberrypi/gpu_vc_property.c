@@ -116,7 +116,7 @@ STATIC mp_obj_t gpu_vc_property(size_t n_args, const mp_obj_t *args) {
             printf("\n");
 */
             // request to get property through mailbox
-            mailbox_write(MB_CH_PROP_ARM, (uint32_t) (BUSADDR(buf)) >> 4);
+            mailbox_write(MB_CH_PROP_ARM, (uint32_t) BUSADDR(buf) >> 4);
             mailbox_read(MB_CH_PROP_ARM);
 /*            
             for (int i = 0; i < 5 + (((buf[4]  + 3) & 0x7fffffff) >> 2); i++) {
