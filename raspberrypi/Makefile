@@ -29,7 +29,7 @@ CFLAGS = $(INC) $(CWARN) -std=c99 -nostdlib $(CFLAGS_RPI) $(CFLAGS_MOD) $(COPT)
 
 #Debugging/Optimization
 ifeq ($(DEBUG), 1)
-CFLAGS += -O0 -ggdb
+CFLAGS += -O0 -gdwarf-2
 else
 CFLAGS += -Os -DNDEBUG
 endif

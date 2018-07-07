@@ -135,6 +135,10 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
     mp_stack_set_limit((char*)&_estack - (char*)&_heap_end - 1024);
 
     // check ARM boot tag and set up standard I/O
+    if (atag != (int32_t *) 0x100) {
+        // atag points to 0x100 in general, so something may be wrong?
+        atag = (int32_t *) 0x100;
+    }
     if (atag && (strcmp("qemu", arm_boot_tag_cmdline(atag)) == 0)) {
         use_qemu = true;
     }
@@ -213,9 +217,15 @@ void NORETURN __fatal_error(const char *msg) {
     while (1);
 }
 
-#ifndef NDEBUG
+
+#ifdef NDEBUG
+void MP_WEAK __assert_func(const char *file, int line, const char *func, const char *expr) {
+    __fatal_error("Assertion failed");
+}
+#else
 void MP_WEAK __assert_func(const char *file, int line, const char *func, const char *expr) {
     printf("Assertion '%s' failed, at file %s:%d\n", expr, file, line);
     __fatal_error("Assertion failed");
 }
 #endif
+
