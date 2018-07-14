@@ -119,6 +119,7 @@ INC += -I$(USBHOST_DIR)/include
 CFLAGS += -DMICROPY_HW_USBHOST=$(MICROPY_HW_USBHOST)
 SRC_MOD += usbhost.c \
 	machine_usb_mode.c \
+	usbkbd.c \
 
 LIB += -lcsud
 LDFLAGS += -no-wchar-size-warning
