@@ -7,8 +7,6 @@
 #include "rpi.h"
 #include "usbkbd.h"
 
-static unsigned int kbd_addr;
-static unsigned int keys[6];
 
 #define USBKBD_KEYMAPSIZE (104)
 
@@ -52,8 +50,8 @@ unsigned char keymap_jp[2][USBKBD_KEYMAPSIZE] = {
         'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
         'u', 'v', 'w', 'x', 'y', 'z', '1', '2',
         '3', '4', '5', '6', '7', '8', '9', '0',
-        0xd, 0x1b, 0x8, 0x9, ' ', '-', '^', '[',
-        ']', '\\', 0x0, ';', '\'', '`', ',', '.',
+        0xd, 0x1b, 0x8, 0x9, ' ', '-', '^', '@',
+        '[', 0x0, ']', ';', ':', 0x0, ',', '.',
         '/', 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
         0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
         0x0, 0x12, 0x0, 0x0, 0x7f, 0x0, 0x0, 0x1c,
@@ -65,10 +63,10 @@ unsigned char keymap_jp[2][USBKBD_KEYMAPSIZE] = {
         0x0, 0x0, 0x0, 0x0, 'A', 'B', 'C', 'D',
         'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
         'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-        'U', 'V', 'W', 'X', 'Y', 'Z', '!', '@',
-        '#', '$', '%', '^', '&', '*', '(', ')',
-        0xa, 0x1b, '\b', '\t', ' ', '_', '+', '{',
-        '}', '|', '~', ':', '"', '~', '<', '>',
+        'U', 'V', 'W', 'X', 'Y', 'Z', '!', '"',
+        '#', '$', '%', '&', '\'', '(', ')', 0x0,
+        0xa, 0x1b, '\b', '\t', ' ', '=', '~', '`',
+        '{', 0x0, '}', '+', '*', 0x0, '<', '>',
         '?', 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
         0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
         0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
@@ -86,31 +84,51 @@ unsigned char keycode2char_us(int k, unsigned char shift) {
     }
 }
 
-static f_keycode2char_t _keycode2char = keycode2char_us;
+unsigned char keycode2char_jp(int k, unsigned char shift) {
+    k = k & 0xff;
+    if (k < 104) {
+        return keymap_jp[(shift == 0) ? 0 : 1][k];
+    } else if (k == 135) {
+        return (shift == 0) ? '\\' : '_';
+    } else if (k == 137) {
+        return (shift == 0) ? '\\' : '|';
+    } else {
+        return 0;
+    }
+}
+
+void usbkbd_init(usbkbd_t *kbd) {
+    kbd->kbd_addr = 0;
+    for (int i = 0; i < 6; i++) {
+        kbd->keys[i] = 0;
+    }
+    kbd->keycode2char = keycode2char_jp;
+}
 
 // usbkbd_getc() returns -1 if no input
-int usbkbd_getc() {
+int usbkbd_getc(usbkbd_t *kbd) {
     unsigned int key;
     struct KeyboardModifiers mod;
     int result = -1;
     
-    if (kbd_addr == 0) {
+    if (kbd->kbd_addr == 0) {
         // Is there a keyboard ?
         UsbCheckForChange();
         if (KeyboardCount() > 0) {
-            kbd_addr = KeyboardGetAddress(0);
+            kbd->kbd_addr = KeyboardGetAddress(0);
         }
     }
 
-    if (kbd_addr != 0) {
+    if (kbd->kbd_addr != 0) {
         for(int i = 0; i < 6; i++) {
             // Read and print each keycode of pressed keys
-            key = KeyboardGetKeyDown(kbd_addr, i);
-            if (key != keys[0] && key != keys[1] && key != keys[2] && \
-                key != keys[3] && key != keys[4] && key != keys[5] && key) {
-                mod = KeyboardGetModifiers(kbd_addr);
+            key = KeyboardGetKeyDown(kbd->kbd_addr, i);
+            if (key != kbd->keys[0] && key != kbd->keys[1] && \
+                key != kbd->keys[2] && key != kbd->keys[3] && \
+                key != kbd->keys[4] && key != kbd->keys[5] && key) {
+                mod = KeyboardGetModifiers(kbd->kbd_addr);
                 if (mod.RightControl | mod.LeftControl) {
-                    unsigned char c = (*_keycode2char)(key, 1);
+                    unsigned char c = (*(kbd->keycode2char))(key, 1);
                     switch(c) {
                     case 'A': result = 1; break;
                     case 'B': result = 2; break;
@@ -125,7 +143,7 @@ int usbkbd_getc() {
                     default: result = 0;
                     }
                 } else {
-                    result = (*_keycode2char)(key, mod.RightShift | mod.LeftShift);
+                    result = (*(kbd->keycode2char))(key, mod.RightShift | mod.LeftShift);
                     // convert arrow keys to EMACS binding controls
                     switch(result) {
                     case 0x1d: result = 2; break;
@@ -136,11 +154,11 @@ int usbkbd_getc() {
                     }
                 }
             }
-            keys[i] = key;
+            kbd->keys[i] = key;
         }
 
-        if (KeyboardPoll(kbd_addr) != 0) {
-            kbd_addr = 0;
+        if (KeyboardPoll(kbd->kbd_addr) != 0) {
+            kbd->kbd_addr = 0;
         }
     }
     return result;

@@ -90,12 +90,20 @@ uint32_t uart_rx_state(void) {
     return _uart_rx_state();
 }
 
+#ifdef MICROPY_HW_USBHOST
+usbkbd_t usbkbd;
+
+void usbkbd_setup() {
+    usbkbd_init(&usbkbd);
+}
+
+#endif
 // Receive single character
 int mp_hal_stdin_rx_chr(void) {
     for(;;) {
 #ifdef MICROPY_HW_USBHOST
         int result;
-        if ((result = usbkbd_getc()) >= 0) {
+        if ((result = usbkbd_getc(&usbkbd)) >= 0) {
             return result;
         }
 #endif
