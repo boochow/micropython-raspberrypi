@@ -195,8 +195,7 @@ qemu: $(BUILD)/firmware-qemu.img
 	-no-reboot \
 	-nographic \
 	-monitor null \
-	-serial stdio \
-	-redir tcp:10022::22
+	-serial stdio
 
 include $(TOP)/py/mkrules.mk
 
