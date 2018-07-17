@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "arm_exceptions.h"
 #include "usbhost.h"
 
 // options to control how MicroPython is built
@@ -8,10 +9,10 @@
 #define MICROPY_ALLOC_PARSE_CHUNK_INIT (16)
 #define MICROPY_EMIT_X64            (0)
 #define MICROPY_EMIT_X86            (0)
-#define MICROPY_EMIT_THUMB          (1)
+#define MICROPY_EMIT_THUMB          (0)
 #define MICROPY_EMIT_ARM            (0)
 #define MICROPY_EMIT_XTENSA         (0)
-#define MICROPY_EMIT_INLINE_THUMB   (1)
+#define MICROPY_EMIT_INLINE_THUMB   (0)
 #define MICROPY_EMIT_INLINE_THUMB_ARMV7M (0)
 #define MICROPY_EMIT_INLINE_THUMB_FLOAT (0)
 #define MICROPY_COMP_MODULE_CONST   (0)
@@ -46,15 +47,15 @@
 #define MICROPY_PY___FILE__         (0)
 #define MICROPY_PY_GC               (1)
 #define MICROPY_PY_ARRAY            (1)
-#define MICROPY_PY_ATTRTUPLE        (0)
-#define MICROPY_PY_COLLECTIONS      (0)
+#define MICROPY_PY_ATTRTUPLE        (1)
+#define MICROPY_PY_COLLECTIONS      (1)
 #define MICROPY_PY_MATH             (1)
-#define MICROPY_PY_CMATH            (0)
+#define MICROPY_PY_CMATH            (1)
 #define MICROPY_PY_IO               (1)
 #define MICROPY_PY_IO_IOBASE        (1)
 #define MICROPY_PY_IO_FILEIO        (1)
 #define MICROPY_PY_STRUCT           (1)
-#define MICROPY_PY_SYS              (0)
+#define MICROPY_PY_SYS              (1)
 #define MICROPY_PY_MACHINE          (1)
 #define MICROPY_PY_UTIME_MP_HAL     (1)
 #define MICROPY_PY_FRAMEBUF         (1)
@@ -129,6 +130,22 @@ extern const struct _mp_obj_module_t mp_module_uos;
 // extra built in names to add to the global namespace
 #define MICROPY_PORT_BUILTINS \
     { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },
+
+
+// Raspberry Pi CPU(ARMv6) can enable/disable all irqs by setting
+// bit 7 of CPSR so we do not need to save/restore irq flags state.
+
+__attribute__(( always_inline )) static inline void enable_irq(mp_uint_t state) {
+    arm_irq_enable();
+}
+
+__attribute__(( always_inline )) static inline mp_uint_t disable_irq(void) {
+    arm_irq_disable();
+    return 0x80;
+}
+
+#define MICROPY_BEGIN_ATOMIC_SECTION()     disable_irq()
+#define MICROPY_END_ATOMIC_SECTION(state)  enable_irq(state)
 
 // We need to provide a declaration/definition of alloca()
 #include <alloca.h>
