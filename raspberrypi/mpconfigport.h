@@ -15,8 +15,8 @@
 #define MICROPY_EMIT_INLINE_THUMB   (0)
 #define MICROPY_EMIT_INLINE_THUMB_ARMV7M (0)
 #define MICROPY_EMIT_INLINE_THUMB_FLOAT (0)
-#define MICROPY_COMP_MODULE_CONST   (0)
-#define MICROPY_COMP_CONST          (0)
+#define MICROPY_COMP_MODULE_CONST   (1)
+#define MICROPY_COMP_CONST          (1)
 #define MICROPY_COMP_DOUBLE_TUPLE_ASSIGN (0)
 #define MICROPY_COMP_TRIPLE_TUPLE_ASSIGN (0)
 #define MICROPY_STACK_CHECK         (1)
@@ -27,12 +27,11 @@
 #define MICROPY_HELPER_REPL         (1)
 #define MICROPY_REPL_EMACS_KEYS     (1)
 #define MICROPY_REPL_AUTO_INDENT    (1)
-#define MICROPY_HELPER_LEXER_UNIX   (0)
 #define MICROPY_ENABLE_SOURCE_LINE  (1)
 #define MICROPY_ENABLE_DOC_STRING   (1)
 #define MICROPY_ERROR_REPORTING     (MICROPY_ERROR_REPORTING_TERSE)
 #define MICROPY_BUILTIN_METHOD_CHECK_SELF_ARG (1)
-#define MICROPY_PY_ASYNC_AWAIT (0)
+#define MICROPY_PY_ASYNC_AWAIT      (1)
 #define MICROPY_PY_BUILTINS_BYTEARRAY (1)
 #define MICROPY_PY_BUILTINS_MEMORYVIEW (1)
 #define MICROPY_PY_BUILTINS_ENUMERATE (1)
@@ -44,7 +43,7 @@
 #define MICROPY_PY_BUILTINS_HELP    (1)
 //#define MICROPY_PY_BUILTINS_HELP_TEXT rpi_help_text
 #define MICROPY_PY_BUILTINS_HELP_MODULES (1)
-#define MICROPY_PY___FILE__         (0)
+#define MICROPY_PY___FILE__         (1)
 #define MICROPY_PY_GC               (1)
 #define MICROPY_PY_ARRAY            (1)
 #define MICROPY_PY_ARRAY_SLICE_ASSIGN (1)
@@ -155,6 +154,7 @@ __attribute__(( always_inline )) static inline mp_uint_t disable_irq(void) {
 
 #define MICROPY_HW_BOARD_NAME        "Raspberry Pi"
 #define MICROPY_HW_MCU_NAME          "ARM1176JZF-S"
+#define MICROPY_PY_SYS_PLATFORM      "raspberrypi"
 
 #define MP_STATE_PORT MP_STATE_VM
 
