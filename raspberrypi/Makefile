@@ -74,6 +74,7 @@ SRC_C = \
 
 SRC_LIB = $(addprefix lib/,\
 	utils/stdout_helpers.c \
+	utils/sys_stdio_mphal.c \
 	utils/interrupt_char.c \
 	utils/pyexec.c \
 	libc/string0.c \
