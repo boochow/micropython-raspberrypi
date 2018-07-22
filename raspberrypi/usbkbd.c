@@ -102,7 +102,7 @@ void usbkbd_init(usbkbd_t *kbd) {
     for (int i = 0; i < 6; i++) {
         kbd->keys[i] = 0;
     }
-    kbd->keycode2char = keycode2char_jp;
+    kbd->keycode2char = keycode2char_us;
 }
 
 // usbkbd_getc() returns -1 if no input
