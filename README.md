@@ -10,6 +10,11 @@ git submodule update --init
 cd micropython; git submodule update --init; cd ..
 cd raspberrypi; make
 ```
+
+## Options
+1. `MICROPY_HW_USBHOST=1` to enable USB keyboard support.
+1. `MICROPY_MOUNT_SD_CARD=1` to mount SD card on /sd in the boot sequence.
+
 ## How to install
 
 1. download `bootcode.bin` and `start.elf` from https://github.com/raspberrypi/firmware/tree/master/boot
