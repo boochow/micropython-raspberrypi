@@ -185,6 +185,7 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         // using MemoryAllocate in usbhost.c which in turn calls m_alloc().
         if (!use_qemu) {
             rpi_usb_host_init();
+            usbkbd_setup();
         }
 #endif
         for (;;) {

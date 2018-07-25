@@ -36,10 +36,14 @@ void rpi_usb_host_init(void) {
         MP_STATE_PORT(hcd_globals)->core = Core;
         MP_STATE_PORT(hcd_globals)->host = Host;
         MP_STATE_PORT(hcd_globals)->power = Power;
-        MP_STATE_PORT(hcd_globals)->devices = Devices;
+        for (int i = 0; i < 32; i++) {
+            MP_STATE_PORT(hcd_globals)->devices[i] = &Devices[i];
+        }
         MP_STATE_PORT(hcd_globals)->databuffer = databuffer;
-        MP_STATE_PORT(hcd_globals)->keyboards = keyboards;
-        MP_STATE_PORT(hcd_globals)->mice = mice;
+        for (int i = 0; i < 4; i++) {
+            MP_STATE_PORT(hcd_globals)->keyboards[i] = &keyboards[i];
+            MP_STATE_PORT(hcd_globals)->mice[i] = &mice[i];
+        }
 
         usb_initialised = 1;
     }

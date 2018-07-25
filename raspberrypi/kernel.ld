@@ -20,7 +20,7 @@ SECTIONS {
     . = . + 0x4000000;
     _heap_end = .;
     
-    . = . + 0x3F80000;
+    . = 0x8000000;
     _estack = .;
     _ram_end = .;
 }

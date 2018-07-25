@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "arm_exceptions.h"
 #include "usbhost.h"
 
 // options to control how MicroPython is built
@@ -7,10 +8,15 @@
 #define MICROPY_ALLOC_PATH_MAX      (512)
 #define MICROPY_ALLOC_PARSE_CHUNK_INIT (16)
 #define MICROPY_EMIT_X64            (0)
+#define MICROPY_EMIT_X86            (0)
 #define MICROPY_EMIT_THUMB          (0)
+#define MICROPY_EMIT_ARM            (0)
+#define MICROPY_EMIT_XTENSA         (0)
 #define MICROPY_EMIT_INLINE_THUMB   (0)
-#define MICROPY_COMP_MODULE_CONST   (0)
-#define MICROPY_COMP_CONST          (0)
+#define MICROPY_EMIT_INLINE_THUMB_ARMV7M (0)
+#define MICROPY_EMIT_INLINE_THUMB_FLOAT (0)
+#define MICROPY_COMP_MODULE_CONST   (1)
+#define MICROPY_COMP_CONST          (1)
 #define MICROPY_COMP_DOUBLE_TUPLE_ASSIGN (0)
 #define MICROPY_COMP_TRIPLE_TUPLE_ASSIGN (0)
 #define MICROPY_STACK_CHECK         (1)
@@ -18,15 +24,15 @@
 #define MICROPY_DEBUG_PRINTERS      (0)
 #define MICROPY_READER_VFS          (MICROPY_VFS)
 #define MICROPY_ENABLE_GC           (1)
+#define MICROPY_ENABLE_FINALISER    (1)
 #define MICROPY_HELPER_REPL         (1)
 #define MICROPY_REPL_EMACS_KEYS     (1)
 #define MICROPY_REPL_AUTO_INDENT    (1)
-#define MICROPY_HELPER_LEXER_UNIX   (0)
 #define MICROPY_ENABLE_SOURCE_LINE  (1)
 #define MICROPY_ENABLE_DOC_STRING   (1)
 #define MICROPY_ERROR_REPORTING     (MICROPY_ERROR_REPORTING_TERSE)
 #define MICROPY_BUILTIN_METHOD_CHECK_SELF_ARG (1)
-#define MICROPY_PY_ASYNC_AWAIT (0)
+#define MICROPY_PY_ASYNC_AWAIT      (1)
 #define MICROPY_PY_BUILTINS_BYTEARRAY (1)
 #define MICROPY_PY_BUILTINS_MEMORYVIEW (1)
 #define MICROPY_PY_BUILTINS_ENUMERATE (1)
@@ -38,24 +44,33 @@
 #define MICROPY_PY_BUILTINS_HELP    (1)
 //#define MICROPY_PY_BUILTINS_HELP_TEXT rpi_help_text
 #define MICROPY_PY_BUILTINS_HELP_MODULES (1)
-#define MICROPY_PY___FILE__         (0)
+#define MICROPY_PY___FILE__         (1)
 #define MICROPY_PY_GC               (1)
 #define MICROPY_PY_ARRAY            (1)
-#define MICROPY_PY_ATTRTUPLE        (0)
-#define MICROPY_PY_COLLECTIONS      (0)
-#define MICROPY_PY_MATH             (1)
-#define MICROPY_PY_CMATH            (0)
+#define MICROPY_PY_ARRAY_SLICE_ASSIGN (1)
+#define MICROPY_PY_ATTRTUPLE        (1)
+#define MICROPY_PY_COLLECTIONS      (1)
+#define MICROPY_PY_CMATH            (1)
 #define MICROPY_PY_IO               (1)
 #define MICROPY_PY_IO_IOBASE        (1)
 #define MICROPY_PY_IO_FILEIO        (1)
 #define MICROPY_PY_STRUCT           (1)
-#define MICROPY_PY_SYS              (0)
+#define MICROPY_PY_SYS              (1)
+#define MICROPY_PY_SYS_MAXSIZE      (1)
+#define MICROPY_PY_SYS_EXIT         (1)
+#define MICROPY_PY_SYS_STDFILES     (1)
+#define MICROPY_PY_SYS_STDIO_BUFFER (1)
+#define MICROPY_PY_UERRNO           (1)
+#define MICROPY_PY_SYS_EXC_INFO     (1)
+#define MICROPY_ENABLE_EMERGENCY_EXCEPTION_BUF   (1)
+#define MICROPY_EMERGENCY_EXCEPTION_BUF_SIZE  (256)
 #define MICROPY_PY_MACHINE          (1)
 #define MICROPY_PY_UTIME_MP_HAL     (1)
 #define MICROPY_PY_FRAMEBUF         (1)
 #define MICROPY_PY_VFS              (1)
+#define MICROPY_PY_MICROPYTHON_MEM_INFO (1)
 #define MICROPY_PY_OS_DUPTERM       (1)
-#define MICROPY_CPYTHON_COMPAT      (0)
+#define MICROPY_CPYTHON_COMPAT      (1)
 #define MICROPY_LONGINT_IMPL        (MICROPY_LONGINT_IMPL_MPZ)
 #define MICROPY_FLOAT_IMPL          (MICROPY_FLOAT_IMPL_FLOAT)
 #define MICROPY_MODULE_WEAK_LINKS   (1)
@@ -125,11 +140,28 @@ extern const struct _mp_obj_module_t mp_module_uos;
 #define MICROPY_PORT_BUILTINS \
     { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },
 
+
+// Raspberry Pi CPU(ARMv6) can enable/disable all irqs by setting
+// bit 7 of CPSR so we do not need to save/restore irq flags state.
+
+__attribute__(( always_inline )) static inline void enable_irq(mp_uint_t state) {
+    arm_irq_enable();
+}
+
+__attribute__(( always_inline )) static inline mp_uint_t disable_irq(void) {
+    arm_irq_disable();
+    return 0x80;
+}
+
+#define MICROPY_BEGIN_ATOMIC_SECTION()     disable_irq()
+#define MICROPY_END_ATOMIC_SECTION(state)  enable_irq(state)
+
 // We need to provide a declaration/definition of alloca()
 #include <alloca.h>
 
 #define MICROPY_HW_BOARD_NAME        "Raspberry Pi"
 #define MICROPY_HW_MCU_NAME          "ARM1176JZF-S"
+#define MICROPY_PY_SYS_PLATFORM      "raspberrypi"
 
 #define MP_STATE_PORT MP_STATE_VM
 

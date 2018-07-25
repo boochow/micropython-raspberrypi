@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "py/mperrno.h"
 #include "py/runtime.h"
 #include "py/mphal.h"
 #include "py/mperrno.h"

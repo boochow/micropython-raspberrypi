@@ -5,10 +5,10 @@ typedef struct _hcd_globals_t {
     void *core;
     void *host;
     void *power;
-    void *devices;
+    void *devices[32];
     void *databuffer;
-    void *keyboards;
-    void *mice;
+    void *keyboards[4];
+    void *mice[4];
 } hcd_globals_t;
 
 void rpi_usb_host_init(void);

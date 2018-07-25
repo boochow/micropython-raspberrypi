@@ -2,10 +2,6 @@
 .section .init
 
 _start:
-    // set SVC_MODE stack
-    ldr sp, =_estack
-
-    push {r0}
     // set IRQ_MODE stack
     ldr r0, =0x000000d2
     msr cpsr_c, r0
@@ -19,6 +15,8 @@ _start:
     // set mode to SVC_MODE
     ldr r0, =0x000000d3
     msr cpsr_c, r0
+    ldr sp, =_estack
+
 
 //    mrc p15, 0, r0, c1, c0, 0
     /// enable unaligned access support
@@ -32,7 +30,7 @@ _start:
 //    mcr p15, 0, r0, c1, c0, 0
 
     // jump to main
-    pop {r0}
+    ldr r0, =0x00000000
     bl arm_main
 
 halt:

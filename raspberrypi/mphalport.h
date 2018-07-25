@@ -19,3 +19,8 @@ typedef enum std_io_t {
 
 void uart_init(std_io_t interface);
 
+#ifdef MICROPY_HW_USBHOST
+#include "usbkbd.h"
+
+void usbkbd_setup();
+#endif

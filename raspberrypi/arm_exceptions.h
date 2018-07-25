@@ -19,8 +19,17 @@ extern vector_table_t exception_vector;
 
 void arm_exceptions_init();
 
-void arm_irq_enable();
-void arm_irq_disable();
+__attribute__(( always_inline )) static inline void arm_irq_enable() {
+  __asm volatile("mrs r0, cpsr \n"
+                 "bic r0, r0, #0x80 \n"
+                 "msr cpsr_c, r0 \n");
+}
+
+__attribute__(( always_inline )) static inline void arm_irq_disable(){
+  __asm volatile("mrs r0, cpsr \n"
+                 "orr r0, r0, #0x80 \n"
+                 "msr cpsr_c, r0 \n");
+}
 
 extern void __attribute__((interrupt("UNDEF"))) undef_handler(void);
 extern void __attribute__((interrupt("SWI"))) svc_handler(void);

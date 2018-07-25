@@ -74,6 +74,7 @@ SRC_C = \
 
 SRC_LIB = $(addprefix lib/,\
 	utils/stdout_helpers.c \
+	utils/sys_stdio_mphal.c \
 	utils/interrupt_char.c \
 	utils/pyexec.c \
 	libc/string0.c \
@@ -119,6 +120,7 @@ INC += -I$(USBHOST_DIR)/include
 CFLAGS += -DMICROPY_HW_USBHOST=$(MICROPY_HW_USBHOST)
 SRC_MOD += usbhost.c \
 	machine_usb_mode.c \
+	usbkbd.c \
 
 LIB += -lcsud
 LDFLAGS += -no-wchar-size-warning
@@ -194,8 +196,7 @@ qemu: $(BUILD)/firmware-qemu.img
 	-no-reboot \
 	-nographic \
 	-monitor null \
-	-serial stdio \
-	-redir tcp:10022::22
+	-serial stdio
 
 include $(TOP)/py/mkrules.mk
 

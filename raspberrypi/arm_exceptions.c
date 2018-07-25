@@ -33,15 +33,3 @@ static void set_vbar(vector_table_t *base) {
 void arm_exceptions_init() {
     set_vbar(&exception_vector);
 }
-
-void arm_irq_enable() {
-  __asm volatile("mrs r0, cpsr \n"
-                 "bic r0, r0, #0x80 \n"
-                 "msr cpsr_c, r0 \n");
-}
-
-void arm_irq_disable() {
-  __asm volatile("mrs r0, cpsr \n"
-                 "orr r0, r0, #0x80 \n"
-                 "msr cpsr_c, r0 \n");
-}
