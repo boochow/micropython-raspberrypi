@@ -6,6 +6,7 @@
 
 void i2c_init(i2c_t *i2c);
 void i2c_deinit(i2c_t *i2c);
+void i2c_write_start(i2c_t *i2c, bool stop);
 int i2c_write(i2c_t *i2c, const uint8_t *buf, const uint32_t buflen, bool stop);
 int i2c_read(i2c_t *i2c, uint8_t *buf, const uint32_t readlen);
 

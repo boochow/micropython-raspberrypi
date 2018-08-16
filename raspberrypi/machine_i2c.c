@@ -140,6 +140,7 @@ STATIC mp_obj_t machine_i2c_writeto(size_t n_args, const mp_obj_t *args) {
     bool stop = (n_args == 3) ? true : mp_obj_is_true(args[3]);
 
     i2c_set_slave(self->i2c, addr);
+    i2c_write_start(self->i2c, stop);
     int ret = i2c_write(self->i2c, bufinfo.buf, bufinfo.len, stop);
     if (ret < 0) {
         i2c_clear_fifo(self->i2c);
