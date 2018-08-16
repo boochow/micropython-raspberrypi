@@ -60,6 +60,22 @@ int i2c_result(i2c_t *i2c) {
     return 0;
 }
 
+void i2c_write_start(i2c_t *i2c, bool stop) {
+    // Note: you can't send start bit without determining the 
+    // next operation will be reading or writing.
+    // This function assumes the operation is "wriiting".
+    if ((i2c->S & S_TA) && ((i2c->C & C_READ) == 0)){
+        // previous write transfer is still active
+        i2c_abort_write(i2c);
+    } else {
+        i2c->S |= S_DONE | S_ERR | S_CLKT;
+    }
+    i2c->S |= S_DONE | S_ERR | S_CLKT;
+    i2c->C = i2c->C & ~C_READ;
+    i2c->DLEN = 0xffff;
+    i2c_start(i2c);
+}
+
 int i2c_write(i2c_t *i2c, const uint8_t *buf, const uint32_t buflen, bool stop) {
     int len = buflen;
     bool continued = false;
