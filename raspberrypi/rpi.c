@@ -7,6 +7,7 @@
 #include "bcm283x_gpio.h"
 #include "bcm283x_aux.h"
 #include "bcm283x_mailbox.h"
+#include "bcm283x_clockmgr.h"
 #include "vc_property.h"
 #include "rpi.h"
 
@@ -106,7 +107,11 @@ static void get_clock_value() {
 }
 
 void rpi_init() {
+    // read values of freq_cpu, freq_core
     get_clock_value();
-// any initialization 
+    // set PWM clock to 960KHz (19.2MHz / 20) as a default value
+    clockmgr_config_ctl((clockmgr_t *) CM_PWM, CM_CTL_MASH_1STG | CM_CTL_ENAB | CM_CTL_SRC_OSC);
+    clockmgr_config_div((clockmgr_t *) CM_PWM, 20, 0);
+    // any additional initialization 
 }
 
