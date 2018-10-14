@@ -7,5 +7,6 @@ extern const mp_obj_type_t machine_sdcard_type;
 extern const mp_obj_type_t machine_i2c_type;
 extern const mp_obj_type_t machine_spi_type;
 extern const mp_obj_type_t machine_pwm_type;
+extern const mp_obj_type_t machine_clock_type;
 
 #endif // MICROPY_INCLUDED_RPI_MODMACHINE_H

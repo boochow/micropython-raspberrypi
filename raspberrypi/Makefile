@@ -73,6 +73,7 @@ SRC_C = \
 	gpu_vc_property.c \
 	bcm283x_clockmgr.c \
 	machine_pwm.c \
+	machine_clockmgr.c \
 
 SRC_LIB = $(addprefix lib/,\
 	utils/stdout_helpers.c \
