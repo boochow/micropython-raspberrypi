@@ -170,8 +170,8 @@ __attribute__(( always_inline )) static inline mp_uint_t disable_irq(void) {
     return 0x80;
 }
 
-#define MICROPY_BEGIN_ATOMIC_SECTION()     disable_irq()
-#define MICROPY_END_ATOMIC_SECTION(state)  enable_irq(state)
+//#define MICROPY_BEGIN_ATOMIC_SECTION()     disable_irq()
+//#define MICROPY_END_ATOMIC_SECTION(state)  enable_irq(state)
 
 // We need to provide a declaration/definition of alloca()
 #include <alloca.h>
