@@ -7,21 +7,22 @@
 #include "modmachine.h"
 #include "rpi.h"
 #include "bcm283x_gpio.h"
-#include "bcm283x_clockmgr.h"
 #include "bcm283x_pwm.h"
+#include "machine_pin_util.h"
 
-#define DEFAULT_RANGE 960
-#define DEFAULT_DATA  480
+#define DEFAULT_PERIOD  960
+#define DEFAULT_TICK_HZ 960000
 
 typedef struct _machine_pwm_obj_t {
     const mp_obj_base_t base;
     const uint32_t id;
     int32_t pin;
+    uint32_t tick_hz;
 } machine_pwm_obj_t;
 
 static machine_pwm_obj_t machine_pwm_obj[] = {
-    {{&machine_pwm_type}, 0, -1},
-    {{&machine_pwm_type}, 1, -1},
+    {{&machine_pwm_type}, 0, -1, 0},
+    {{&machine_pwm_type}, 1, -1, 0},
 };
 
 static int pwm_select_pin(const int pin) {
@@ -84,7 +85,7 @@ static void pwm_set_active(uint32_t id, bool active) {
     }
 }
 
-static uint32_t pwm_get_range(uint32_t id) {
+static uint32_t pwm_get_period(uint32_t id) {
     pwm_t *pwm = (pwm_t *)(PWM);
     if (id == 0) {
         return pwm->RNG1;
@@ -93,7 +94,7 @@ static uint32_t pwm_get_range(uint32_t id) {
     }
 }
 
-static uint32_t pwm_get_data(uint32_t id) {
+static uint32_t pwm_get_duty_ticks(uint32_t id) {
     pwm_t *pwm = (pwm_t *)(PWM);
     if (id == 0) {
         return pwm->DAT1;
@@ -102,68 +103,63 @@ static uint32_t pwm_get_data(uint32_t id) {
     }
 }
 
-static void pwm_set_range(uint32_t id, uint32_t range) {
+static void pwm_set_period(uint32_t id, uint32_t period) {
     pwm_t *pwm = (pwm_t *)(PWM);
     if (id == 0) {
-        pwm->RNG1 = range;
+        pwm->RNG1 = period;
     } else {
-        pwm->RNG2 = range;
+        pwm->RNG2 = period;
     }
 }
 
-static void pwm_set_data(uint32_t id, uint32_t data) {
+static void pwm_set_duty_ticks(uint32_t id, uint32_t duty_ticks) {
     pwm_t *pwm = (pwm_t *)(PWM);
     if (id == 0) {
-        pwm->DAT1 = data;
+        pwm->DAT1 = duty_ticks;
     } else {
-        pwm->DAT2 = data;
+        pwm->DAT2 = duty_ticks;
     }
 }
 
-STATIC mp_obj_t machine_pwm_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
-    enum { ARG_id, ARG_pin, ARG_active, ARG_ms, ARG_mode, ARG_polarity, ARG_silence, ARG_use_fifo, ARG_fifo_repeat, ARG_range, ARG_data};
+static void pwm_queue_fifo(uint32_t data) {
+    pwm_t *pwm = (pwm_t *)(PWM);
+    while(pwm->STA & STA_FULL1) {
+    }
+    pwm->FIF1 = data;
+}
+
+static void pwm_clear_fifo() {
+    pwm_t *pwm = (pwm_t *)(PWM);
+    pwm_set_ctl(0, pwm->CTL | CTL_CLRF1);
+}
+
+STATIC mp_obj_t machine_pwm_init_helper(machine_pwm_obj_t *self, size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+    enum { ARG_tick_hz, ARG_period, ARG_duty_ticks, ARG_freq, ARG_duty_u16, ARG_active, ARG_ms, ARG_mode, ARG_polarity, ARG_silence, ARG_use_fifo, ARG_fifo_repeat };
     static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_id,       MP_ARG_INT, {.u_int = -1} },
-        { MP_QSTR_pin,      MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_obj = mp_const_none} },
-        { MP_QSTR_active,   MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 1} },
-        { MP_QSTR_ms,       MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 1} },
-        { MP_QSTR_mode,     MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
-        { MP_QSTR_polarity, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
-        { MP_QSTR_silence,  MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
-        { MP_QSTR_use_fifo, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
+        { MP_QSTR_tick_hz,     MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = -1} },
+        { MP_QSTR_period,      MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = -1} },
+        { MP_QSTR_duty_ticks,  MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = -1} },
+        { MP_QSTR_freq,        MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = -1} },
+        { MP_QSTR_duty_u16,    MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = -1} },
+        { MP_QSTR_active,      MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 1} },
+        { MP_QSTR_ms,          MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 1} },
+        { MP_QSTR_mode,        MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
+        { MP_QSTR_polarity,    MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
+        { MP_QSTR_silence,     MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
+        { MP_QSTR_use_fifo,    MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
         { MP_QSTR_fifo_repeat, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
-        { MP_QSTR_range,    MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = DEFAULT_RANGE} },
-        { MP_QSTR_data,     MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = DEFAULT_DATA} },
     };
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
+
     // parse args
-    mp_arg_check_num(n_args, n_kw, 0, MP_OBJ_FUN_ARGS_MAX, true);
-    mp_arg_parse_all_kw_array(n_args, n_kw, all_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
-    int id = args[ARG_id].u_int;
-    int pin_num = -1;
-    // set up GPIO alternate function and get PWM id if the pin is specified
-    if (args[ARG_pin].u_obj != mp_const_none) {
-        int id_enabled;
-        if (mp_obj_is_integer(args[ARG_pin].u_obj)) {
-            pin_num = mp_obj_get_int(args[ARG_pin].u_obj);
-/*
-        } else if (mp_obj_get_type(args[ARG_pin].uobj) == &machine_pin_type) {
-            // get pin number from pin object and set it to pin_num
-*/
-        } else {
-            mp_raise_ValueError("invalid pin");
-        }
-        id_enabled = pwm_select_pin(pin_num);
-        if ((id >=0) && (id_enabled != id)) {
-            mp_raise_ValueError("invalid PWM number and pin");
-        } else {
-            id = id_enabled;
-        }
-    } else if (id > 2) {
-        mp_raise_ValueError("invalid PWM number");
+    mp_arg_parse_all(n_args, pos_args, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+
+    if (args[ARG_tick_hz].u_int > 0) {
+        self->tick_hz = args[ARG_tick_hz].u_int;
+    } else {
+        self->tick_hz = DEFAULT_TICK_HZ;
     }
-    machine_pwm_obj_t *self = (machine_pwm_obj_t*) &machine_pwm_obj[id];
-    self->pin = pin_num;
+
     // initialize PWM controller
     uint32_t flags = 0;
     if (args[ARG_active].u_int) {
@@ -187,21 +183,86 @@ STATIC mp_obj_t machine_pwm_make_new(const mp_obj_type_t *type, size_t n_args, s
     if (args[ARG_fifo_repeat].u_int) {
         flags |= CTL_RPTL1;
     }
-    pwm_set_ctl(id, flags);
+    pwm_set_ctl(self->id, flags);
 
-    // set range and data
-    pwm_set_range(id, args[ARG_range].u_int);
-    pwm_set_data(id, args[ARG_data].u_int);
+    // set period and duty_ticks
+    uint32_t period;
+    uint64_t duty_ticks;
+
+    if (args[ARG_period].u_int > 0) {
+        period = args[ARG_period].u_int;
+    } else if (args[ARG_freq].u_int > 0) {
+        period = self->tick_hz / args[ARG_freq].u_int;
+    } else {
+        period = DEFAULT_PERIOD;
+    }
+    pwm_set_period(self->id, period);
+
+    if (args[ARG_duty_ticks].u_int > 0) {
+        duty_ticks = args[ARG_duty_ticks].u_int;
+    } else if (args[ARG_duty_u16].u_int > 0) {
+        duty_ticks = (self->tick_hz * args[ARG_duty_u16].u_int) >> 16;
+    } else {
+        duty_ticks = period >> 1;
+    }
+    pwm_set_duty_ticks(self->id, duty_ticks & 0xffffffff);
+
+    return mp_const_none;
+}
+
+STATIC mp_obj_t machine_pwm_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
+    mp_arg_check_num(n_args, n_kw, 1, MP_OBJ_FUN_ARGS_MAX, true);
+
+    // first argment is PWM number or Pin object
+    int id = -1;
+    int pin_num = -1;
+    // set up GPIO alternate function and get PWM id if the pin is specified
+    if (mp_obj_get_type(all_args[0]) == &machine_pin_type) {
+        pin_num = pin_get_id(all_args[0]);
+        if (pin_num < 0) {
+            mp_raise_ValueError("invalid pin");
+        } else {
+            id = pwm_select_pin(pin_num);
+            if (id < 0) {
+                mp_raise_ValueError("invalid pin");
+            }
+        }
+    // or use PWM id without specifing GPIO pin (pin_num = -1)
+    } else if (MP_OBJ_IS_INT(all_args[0])) {
+        id = mp_obj_get_int(all_args[0]);
+        if ((id < 0) || (id > 1)) {
+            mp_raise_ValueError("invalid PWM number");
+        }    
+    }
+
+    machine_pwm_obj_t *self = (machine_pwm_obj_t*) &machine_pwm_obj[id];
+    self->pin = pin_num;
+
+    // parse keyword arguments
+    mp_map_t kw_args;
+    mp_map_init_fixed_table(&kw_args, n_kw, all_args + n_args);
+    machine_pwm_init_helper(self, n_args - 1, all_args + 1, &kw_args);
 
     return self;
 }
 
+STATIC mp_obj_t machine_pwm_init(size_t n_args, const mp_obj_t *args, mp_map_t *kw_args) {
+    return machine_pwm_init_helper(args[0], n_args - 1, args + 1, kw_args);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_KW(machine_pwm_init_obj, 0, machine_pwm_init);
+
 STATIC void machine_pwm_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     machine_pwm_obj_t *self = self_in;
-    mp_printf(print, "PWM(%u", self->id);
+    mp_printf(print, "PWM(");
     if (self->pin >= 0) {
-        mp_printf(print, ", pin=%u", self->pin);
+        mp_printf(print, "Pin(%u)", self->pin);
+    } else {
+        mp_printf(print, "%u", self->id);
     }
+
+    mp_printf(print, ", tick_hz=%u", self->tick_hz);
+    mp_printf(print, ", period=%u", pwm_get_period(self->id));
+    mp_printf(print, ", duty_ticks=%u", pwm_get_duty_ticks(self->id));
 
     uint32_t flags = pwm_get_ctl(self->id);
     qstr mode_qstr = MP_QSTR_MS_DISABLE;
@@ -215,44 +276,68 @@ STATIC void machine_pwm_print(const mp_print_t *print, mp_obj_t self_in, mp_prin
         mode_qstr = MP_QSTR_MODE_SERIALIZER;
     }
     mp_printf(print, ", mode=PWM.%s", qstr_str(mode_qstr));
-
-    mp_printf(print, ", range=%u", pwm_get_range(self->id));
-    mp_printf(print, ", data=%u", pwm_get_data(self->id));
     mp_printf(print, ", polarity=%u", (flags & CTL_POLA1) ? 1 : 0);
     mp_printf(print, ", silence=%u", (flags & CTL_SBIT1) ? 1 : 0);
     mp_printf(print, ", use_fifo=%u", (flags & CTL_USEF1) ? 1 : 0);
     mp_printf(print, ", fifo_repeat=%u)", (flags & CTL_RPTL1) ? 1 : 0);
 }
 
-/// \method range([value])
-/// Get or set the pwm range.
-STATIC mp_obj_t machine_pwm_range(size_t n_args, const mp_obj_t *args) {
-    machine_pwm_obj_t *self = args[0];
-    if (n_args == 1) {
-        // get
-        return MP_OBJ_NEW_SMALL_INT(pwm_get_range(self->id));
-    } else {
-        // set
-        pwm_set_range(self->id, mp_obj_get_int(args[1]));
-        return mp_const_none;
-    }
+STATIC mp_obj_t machine_pwm_deinit(mp_obj_t self_in) {
+    machine_pwm_obj_t *self = self_in;
+    pwm_set_active(self->id, false);
+    self->pin = -1;
+    self->tick_hz = 0;
+    return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_pwm_range_obj, 1, 2, machine_pwm_range);
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_pwm_deinit_obj, machine_pwm_deinit);
 
-/// \method data([value])
-/// Get or set the pwm data.
-STATIC mp_obj_t machine_pwm_data(size_t n_args, const mp_obj_t *args) {
+/// \method period(value)
+/// Get or set the pwm period.
+STATIC mp_obj_t machine_pwm_period(size_t n_args, const mp_obj_t *args) {
     machine_pwm_obj_t *self = args[0];
     if (n_args == 1) {
         // get
-        return MP_OBJ_NEW_SMALL_INT(pwm_get_data(self->id));
+        return MP_OBJ_NEW_SMALL_INT(pwm_get_period(self->id));
     } else {
         // set
-        pwm_set_data(self->id, mp_obj_get_int(args[1]));
+        pwm_set_period(self->id, mp_obj_get_int(args[1]));
         return mp_const_none;
     }
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_pwm_data_obj, 1, 2, machine_pwm_data);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_pwm_period_obj, 1, 2, machine_pwm_period);
+
+/// \method duty_ticks(value)
+/// Get or set the pwm duty_ticks.
+STATIC mp_obj_t machine_pwm_duty_ticks(size_t n_args, const mp_obj_t *args) {
+    machine_pwm_obj_t *self = args[0];
+    if (n_args == 1) {
+        // get
+        return MP_OBJ_NEW_SMALL_INT(pwm_get_duty_ticks(self->id));
+    } else {
+        // set
+        pwm_set_duty_ticks(self->id, mp_obj_get_int(args[1]));
+        return mp_const_none;
+    }
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_pwm_duty_ticks_obj, 1, 2, machine_pwm_duty_ticks);
+
+/// \method duty_u16(value)
+/// Set the duty cycle as a ratio duty_u16 / 2^16.
+STATIC mp_obj_t machine_pwm_duty_u16(size_t n_args, const mp_obj_t *args) {
+    machine_pwm_obj_t *self = args[0];
+    if (n_args == 1) {
+        // get
+        uint64_t duty = pwm_get_duty_ticks(self->id) << 16;
+        return MP_OBJ_NEW_SMALL_INT(duty / pwm_get_period(self->id));
+    } else {
+        // set
+        uint64_t duty = pwm_get_period(self->id);
+        duty = duty * mp_obj_get_int(args[1]);
+        pwm_set_duty_ticks(self->id, (duty >> 16) & 0xffffffffU);
+        return mp_const_none;
+    }
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_pwm_duty_u16_obj, 1, 2, machine_pwm_duty_u16);
 
 /// \method active([value])
 /// activate or deactivate the pwm output.
@@ -273,15 +358,56 @@ STATIC mp_obj_t machine_pwm_active(size_t n_args, const mp_obj_t *args) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_pwm_active_obj, 1, 2, machine_pwm_active);
 
+/// \method freq(value)
+/// Set the frequency in Hz
+STATIC mp_obj_t machine_pwm_freq(size_t n_args, const mp_obj_t *args) {
+    machine_pwm_obj_t *self = args[0];
+    if (n_args == 1) {
+        // get
+        return MP_OBJ_NEW_SMALL_INT(self->tick_hz / pwm_get_period(self->id));
+    } else {
+        // set
+        uint32_t period = self->tick_hz / mp_obj_get_int(args[1]);
+        uint64_t duty = pwm_get_duty_ticks(self->id);
+        duty = (duty << 32) / pwm_get_period(self->id) * period;
+        pwm_set_duty_ticks(self->id, (duty >> 32) & 0xffffffffU);
+        pwm_set_period(self->id, period);
+        return mp_const_none;
+    }
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_pwm_freq_obj, 1, 2, machine_pwm_freq);
+
+/// \method fifo_queue(val1[, val2])
+/// enqueue values into FIFO
+STATIC mp_obj_t machine_pwm_fifo_queue(size_t n_args, const mp_obj_t *args) {
+    pwm_queue_fifo(mp_obj_get_int(args[1]));
+    if (n_args == 3) {
+        pwm_queue_fifo(mp_obj_get_int(args[2]));
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_pwm_fifo_queue_obj, 2, 3, machine_pwm_fifo_queue);
+
+/// \method fifo_clear()
+/// clear FIFO
+STATIC mp_obj_t machine_pwm_fifo_clear(mp_obj_t self_in) {
+    pwm_clear_fifo();
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_pwm_fifo_clear_obj, machine_pwm_fifo_clear);
+
 STATIC const mp_rom_map_elem_t machine_pwm_locals_table[] = {
     // instance methods
-    { MP_ROM_QSTR(MP_QSTR_range), MP_ROM_PTR(&machine_pwm_range_obj) },
-    { MP_ROM_QSTR(MP_QSTR_data), MP_ROM_PTR(&machine_pwm_data_obj) },
+    { MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&machine_pwm_init_obj) },
+    { MP_ROM_QSTR(MP_QSTR_deinit), MP_ROM_PTR(&machine_pwm_deinit_obj) },
+    { MP_ROM_QSTR(MP_QSTR_period), MP_ROM_PTR(&machine_pwm_period_obj) },
+    { MP_ROM_QSTR(MP_QSTR_duty_ticks), MP_ROM_PTR(&machine_pwm_duty_ticks_obj) },
+    { MP_ROM_QSTR(MP_QSTR_duty_u16), MP_ROM_PTR(&machine_pwm_duty_u16_obj) },
+
     { MP_ROM_QSTR(MP_QSTR_active), MP_ROM_PTR(&machine_pwm_active_obj) },
-/*
     { MP_ROM_QSTR(MP_QSTR_freq), MP_ROM_PTR(&machine_pwm_freq_obj) },
-    { MP_ROM_QSTR(MP_QSTR_duty), MP_ROM_PTR(&machine_pwm_duty_obj) },
-*/
+    { MP_ROM_QSTR(MP_QSTR_fifo_queue), MP_ROM_PTR(&machine_pwm_fifo_queue_obj) },
+    { MP_ROM_QSTR(MP_QSTR_fifo_clear), MP_ROM_PTR(&machine_pwm_fifo_clear_obj) },
     // class constants
     { MP_ROM_QSTR(MP_QSTR_MS_DISABLE), MP_ROM_INT(0) },
     { MP_ROM_QSTR(MP_QSTR_MS_ENABLE), MP_ROM_INT(1) },
