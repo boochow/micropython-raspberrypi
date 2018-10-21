@@ -7,6 +7,7 @@
 #include "bcm283x_gpio.h"
 #include "modmachine.h"
 #include "extmod/virtpin.h"
+#include "machine_pin_util.h"
 
 typedef struct _machine_pin_obj_t {
     const mp_obj_base_t base;
@@ -70,6 +71,14 @@ STATIC machine_pin_obj_t machine_pin_obj[] = {
     {{&machine_pin_type}, 52, 0},
     {{&machine_pin_type}, 53, 0},
 };
+
+int32_t pin_get_id(mp_obj_t *pin) {
+    if (MP_OBJ_IS_TYPE(pin, &machine_pin_type)) {
+        return ((machine_pin_obj_t *) pin)->id;
+    } else {
+        return -1;
+    }
+}
 
 static void pin_set_pull_mode(uint32_t pin, uint32_t pud) {
     gpio_set_pull_mode(pin, pud);
