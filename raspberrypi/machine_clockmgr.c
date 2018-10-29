@@ -11,7 +11,7 @@ typedef struct _machine_clock_obj_t {
     clockmgr_t *clock_reg;
 } machine_clock_obj_t;
 
-enum { ARG_source, ARG_mash, ARG_enable, ARG_divi, ARG_divf };
+enum { ARG_enable, ARG_source, ARG_mash, ARG_divi, ARG_divf };
 static const mp_arg_t allowed_args[] = {
     { MP_QSTR_enable, MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_obj = mp_const_none} },
     { MP_QSTR_source, MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_obj = mp_const_none} },
@@ -28,20 +28,24 @@ STATIC mp_obj_t machine_clock_init_helper(machine_clock_obj_t *self, size_t n_ar
     // initialize clock manager
     uint32_t ctl_save = self->clock_reg->CTL;
     uint32_t reg = 0;
-    if (mp_obj_is_integer(args[ARG_source].u_obj)) {
-        reg = mp_obj_get_int(args[ARG_source].u_obj) & CM_CTL_SRC_MASK;
+    if (mp_obj_is_integer(args[ARG_enable].u_obj)) {
+        if (mp_obj_get_int(args[ARG_enable].u_obj) != 0) {
+            reg |= CM_CTL_ENAB;
+        }
     } else {
-        reg = (ctl_save & CM_CTL_SRC_MASK);
+        reg |= (ctl_save & CM_CTL_ENAB);
     }
-    if (mp_obj_is_integer(args[ARG_mash].u_obj)) {
+
+    if (MP_OBJ_IS_INT(args[ARG_source].u_obj)) {
+        reg |= mp_obj_get_int(args[ARG_source].u_obj) & CM_CTL_SRC_MASK;
+    } else {
+        reg |= (ctl_save & CM_CTL_SRC_MASK);
+    }
+
+    if (MP_OBJ_IS_INT(args[ARG_mash].u_obj)) {
         reg |= (mp_obj_get_int(args[ARG_mash].u_obj) << 9) & CM_CTL_MASH_MASK;
     } else {
         reg |= (ctl_save & CM_CTL_MASH_MASK);
-    }
-    if (mp_obj_is_true(args[ARG_enable].u_obj)) {
-        reg |= CM_CTL_ENAB;
-    } else {
-        reg |= (ctl_save & CM_CTL_ENAB);
     }
 
     if (reg != (ctl_save & (CM_CTL_MASH_MASK | CM_CTL_SRC_MASK))) {
@@ -53,12 +57,15 @@ STATIC mp_obj_t machine_clock_init_helper(machine_clock_obj_t *self, size_t n_ar
     if (mp_obj_is_integer(args[ARG_divi].u_obj)) {
         divi = mp_obj_get_int(args[ARG_divi].u_obj);
     }
+
     if (mp_obj_is_integer(args[ARG_divf].u_obj)) {
         divf = mp_obj_get_int(args[ARG_divi].u_obj);
     }
+
     if ((divi != 0) || (divf != 0)){
         clockmgr_set_div(self->clock_reg, divi, divf); 
     }
+
     return (mp_obj_t *) self;
 }
 
