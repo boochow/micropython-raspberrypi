@@ -1,6 +1,8 @@
 #ifndef MICROPY_INCLUDED_RPI_BCM283X_PWM_H
 #define MICROPY_INCLUDED_RPI_BCM283X_PWM_H
 
+#include "bcm283x.h"
+
 #define PWM (IO_BASE + 0x20C000)
 
 typedef volatile struct _pwm_t {

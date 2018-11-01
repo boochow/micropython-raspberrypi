@@ -72,6 +72,7 @@ SRC_C = \
 	vc_property.c \
 	gpu_vc_property.c \
 	bcm283x_clockmgr.c \
+	pwm.c \
 	machine_pwm.c \
 	machine_clockmgr.c \
 
