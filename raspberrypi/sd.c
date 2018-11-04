@@ -30,7 +30,7 @@
 #include "sd.h"
 
 #define MMIO_BASE IO_BASE
-#define wait_msec(n) mp_hal_delay_ms(n)
+#define wait_msec(n) mp_hal_delay_us(n)
 
 #define VERBOSE 0
 
@@ -113,6 +113,8 @@ static inline void wait_cycles(int32_t count)
 #define CMD_READ_SINGLE     0x11220010
 #define CMD_READ_MULTI      0x12220032
 #define CMD_SET_BLOCKCNT    0x17020000
+#define CMD_WRITE_SINGLE    0x18220000
+#define CMD_WRITE_MULTI     0x19220022
 #define CMD_APP_CMD         0x37000000
 #define CMD_SET_BUS_WIDTH   (0x06020000|CMD_NEED_APP)
 #define CMD_SEND_OP_COND    (0x29020000|CMD_NEED_APP)
@@ -128,6 +130,8 @@ static inline void wait_cycles(int32_t count)
 #define INT_DATA_TIMEOUT    0x00100000
 #define INT_CMD_TIMEOUT     0x00010000
 #define INT_READ_RDY        0x00000020
+#define INT_WRITE_RDY       0x00000010
+#define INT_DATA_DONE       0x00000002
 #define INT_CMD_DONE        0x00000001
 
 #define INT_ERROR_MASK      0x017E8000
@@ -260,6 +264,43 @@ int sd_readblock(unsigned int lba, unsigned char *buffer, unsigned int num)
 }
 
 /**
+ * write a block to sd card and return the number of bytes written
+ * returns 0 on error.
+ */
+int sd_writeblock(unsigned int lba, unsigned char *buffer, unsigned int num)
+{
+    int r,c=0,d;
+    if(num<1) num=1;
+    uart_puts("sd_writeblock lba ");uart_hex(lba);uart_puts(" num ");uart_hex(num);uart_send('\n');
+    if(sd_status(SR_DAT_INHIBIT)) {sd_err=SD_TIMEOUT; return 0;}
+    unsigned int *buf=(unsigned int *)buffer;
+    if (((uint32_t) buf & 3) != 0) {uart_puts("\rERROR: bad aligned data\n");sd_err=0;return 0;}
+    if(sd_scr[0] & SCR_SUPP_CCS) {
+        if(num > 1 && (sd_scr[0] & SCR_SUPP_SET_BLKCNT)) {
+            sd_cmd(CMD_SET_BLOCKCNT,num);
+            if(sd_err) return 0;
+        }
+        *EMMC_BLKSIZECNT = (num << 16) | 512;
+        sd_cmd(num == 1 ? CMD_WRITE_SINGLE : CMD_WRITE_MULTI,lba);
+        if(sd_err) return 0;
+    } else {
+        *EMMC_BLKSIZECNT = (1 << 16) | 512;
+    }
+    while( c < num ) {
+        if(!(sd_scr[0] & SCR_SUPP_CCS)) {
+            sd_cmd(CMD_WRITE_SINGLE,(lba+c)*512);
+            if(sd_err) return 0;
+        }
+        if((r=sd_int(INT_WRITE_RDY))){uart_puts("\rERROR: Timeout waiting for ready to write\n");sd_err=r;return 0;}
+        for(d=0;d<128;d++) *EMMC_DATA = buf[d];
+        c++; buf+=128;
+    }
+    if((r=sd_int(INT_DATA_DONE))){uart_puts("\rERROR: Timeout waiting for done writing\n");sd_err=r;return 0;}
+    if( num > 1 && !(sd_scr[0] & SCR_SUPP_SET_BLKCNT) && (sd_scr[0] & SCR_SUPP_CCS)) sd_cmd(CMD_STOP_TRANS,0);
+    return sd_err!=SD_OK || c!=num? 0 : num*512;
+}
+
+/**
  * set SD clock to frequency in Hz
  */
 int sd_clk(unsigned int f)
@@ -371,7 +412,8 @@ int sd_init()
     uart_send('\n');
     if(sd_err) return sd_err;
 
-    if((r=sd_clk(25000000))) return r;
+//    if((r=sd_clk(25000000))) return r;
+    if((r=sd_clk(10400000))) return r;
 
     sd_cmd(CMD_CARD_SELECT,sd_rca);
     if(sd_err) return sd_err;
