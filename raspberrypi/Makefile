@@ -16,6 +16,7 @@ CROSS_COMPILE = arm-none-eabi-
 
 OBJCPY=$(CROSS_COMPILE)objcopy
 
+RELEASE=kernel
 
 INC += -I.
 INC += -I$(TOP)
@@ -184,6 +185,10 @@ $(BUILD)/config.txt: config-template.txt
 	$(Q)$(RM) -f $@
 	$(Q)$(CP) $< $@
 	$(Q)$(ECHO) "kernel=firmware.img" >> $@
+
+release: $(BUILD)/firmware.img
+	$(ECHO) "GEN $@"
+	$(Q)$(CP) $< $(BUILD)/`/bin/date +%Y%m%d`-$(RELEASE).img
 
 $(BUILD)/firmware-qemu.img: $(OBJ) $(USBLIB)
 	$(ECHO) "LINK $@"
