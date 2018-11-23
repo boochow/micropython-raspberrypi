@@ -43,6 +43,16 @@ void pwm_set_active(uint32_t id, bool active) {
     }
 }
 
+void pwm_fifo_set_active(bool active) {
+    pwm_t *pwm = (pwm_t *)(PWM);
+    if (active) {
+        pwm->CTL |= CTL_PWEN1 | CTL_PWEN2;
+    } else {
+        uint32_t mask = ~(CTL_PWEN1 | CTL_PWEN2);
+        pwm->CTL &= mask;
+    }
+}
+
 uint32_t pwm_get_period(uint32_t id) {
     pwm_t *pwm = (pwm_t *)(PWM);
     if (id == 0) {
@@ -79,15 +89,44 @@ void pwm_set_duty_ticks(uint32_t id, uint32_t duty_ticks) {
     }
 }
 
-void pwm_queue_fifo(uint32_t data) {
+bool pwm_fifo_available() {
     pwm_t *pwm = (pwm_t *)(PWM);
-    while(pwm->STA & STA_FULL1) {
-    }
-    pwm->FIF1 = data;
+    return ((pwm->STA & STA_FULL1) == 0);
 }
 
-void pwm_clear_fifo() {
+bool pwm_fifo_queue(uint32_t data) {
+    pwm_t *pwm = (pwm_t *)(PWM);
+    if (pwm->STA & STA_FULL1) {
+        return false;
+    } else {
+        pwm->FIF1 = data;
+        if (pwm->STA & STA_WERR1) {
+            pwm->STA |= STA_WERR1;
+        }
+        return true;
+    }
+}
+
+void pwm_fifo_clear() {
     pwm_t *pwm = (pwm_t *)(PWM);
     pwm_set_ctl(0, pwm->CTL | CTL_CLRF1);
 }
 
+void pwm_err_clear() {
+    pwm_t *pwm = (pwm_t *)(PWM);
+    while (pwm->STA & STA_WERR1) {
+        pwm->STA |= STA_WERR1;
+    }
+    while (pwm->STA & STA_RERR1) {
+        pwm->STA |= STA_RERR1;
+    }
+    while (pwm->STA & STA_GAPO1) {
+        pwm->STA |= STA_GAPO1;
+    }
+    while (pwm->STA & STA_GAPO2) {
+        pwm->STA |= STA_GAPO2;
+    }
+    while (pwm->STA & STA_BERR) {
+        pwm->STA |= STA_BERR;
+    }
+}

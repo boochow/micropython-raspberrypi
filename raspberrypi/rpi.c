@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <limits.h>
 
 #include "arm_exceptions.h"
 #include "bcm283x.h"
@@ -22,6 +23,30 @@ volatile uint64_t systime(void) {
     uint64_t t;
     uint32_t chi;
     uint32_t clo;
+
+    chi = systimer->CHI;
+    clo = systimer->CLO;
+    if (chi != systimer->CHI) {
+        chi = systimer->CHI;
+        clo = systimer->CLO;
+    }
+    t = chi;
+    t = t << 32;
+    t += clo;
+    return t;
+}
+
+volatile uint64_t elapsed_from(uint64_t t) {
+    uint64_t now;
+    uint32_t chi;
+    uint32_t clo;
+
+    now = systime();
+    if (now > t) {
+        return now - t;
+    } else {
+        return ULLONG_MAX - t + now;
+    }
 
     chi = systimer->CHI;
     clo = systimer->CLO;
