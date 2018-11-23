@@ -16,7 +16,9 @@ CROSS_COMPILE = arm-none-eabi-
 
 OBJCPY=$(CROSS_COMPILE)objcopy
 
-RELEASE=kernel
+ZIP = /usr/bin/zip
+RELEASE=`/bin/date +%Y%m%d`-rpi
+RELFILES=fs/
 
 INC += -I.
 INC += -I$(TOP)
@@ -119,6 +121,7 @@ SRC_S = \
 
 # USB
 ifneq ($(MICROPY_HW_USBHOST),0)
+RELEASE=$(RELEASE)-usb
 USBHOST_DIR=csud
 CSUDLIB=libcsud.a
 INC += -I$(USBHOST_DIR)/include
@@ -186,9 +189,10 @@ $(BUILD)/config.txt: config-template.txt
 	$(Q)$(CP) $< $@
 	$(Q)$(ECHO) "kernel=firmware.img" >> $@
 
-release: $(BUILD)/firmware.img
+release: $(BUILD)/firmware.img $(BUILD)/config.txt
 	$(ECHO) "GEN $@"
-	$(Q)$(CP) $< $(BUILD)/`/bin/date +%Y%m%d`-$(RELEASE).img
+	$(Q)$(ZIP) $(BUILD)/$(RELEASE) -j $^
+	$(Q)cd $(RELFILES); $(ZIP) ../$(BUILD)/$(RELEASE) -r .
 
 $(BUILD)/firmware-qemu.img: $(OBJ) $(USBLIB)
 	$(ECHO) "LINK $@"
