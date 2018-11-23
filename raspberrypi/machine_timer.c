@@ -89,20 +89,10 @@ void isr_irq_timer(void) {
     }
 }
 
-STATIC mp_obj_t machine_timer_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
-    mp_arg_check_num(n_args, n_kw, 1, 1, false);
-    int id = mp_obj_get_int(args[0]);
-    if (id > 3) {
-        mp_raise_ValueError("invalid timer number");
-    }
-    machine_timer_obj_t *tim = (machine_timer_obj_t*) &machine_timer_obj[id];
-    return tim;
-}
-
 STATIC mp_obj_t machine_timer_init_helper(machine_timer_obj_t *self, size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_period,       MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0xffffffff} },
-        { MP_QSTR_mode,         MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 1} },
+        { MP_QSTR_mode,         MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = (int) PERIODIC} },
         { MP_QSTR_callback,     MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_obj = mp_const_none} },
     };
 
@@ -114,13 +104,37 @@ STATIC mp_obj_t machine_timer_init_helper(machine_timer_obj_t *self, size_t n_ar
     self->mode = args[1].u_int;
     self->callback = args[2].u_obj;
     self->counter = 0;
-    timer_enable(self->id);
+
+    // the timer is not enabled in this function
 
     return mp_const_none;
 }
 
+STATIC mp_obj_t machine_timer_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+    mp_arg_check_num(n_args, n_kw, 1, MP_OBJ_FUN_ARGS_MAX, true);
+    int id = mp_obj_get_int(args[0]);
+    if (id > 3) {
+        mp_raise_ValueError("invalid timer number");
+    }
+    machine_timer_obj_t *tim = (machine_timer_obj_t*) &machine_timer_obj[id];
+
+    mp_map_t kw_args;
+    mp_map_init_fixed_table(&kw_args, n_kw, args + n_args);
+    machine_timer_init_helper(tim, n_args - 1, args + 1, &kw_args);
+
+    // the timer is enabled when the args other than id are provided
+    if (n_kw > 0) {
+        timer_enable(id);
+    }
+
+    return tim;
+}
+
 STATIC mp_obj_t machine_timer_init(size_t n_args, const mp_obj_t *args, mp_map_t *kw_args) {
-    return machine_timer_init_helper(args[0], n_args - 1, args + 1, kw_args);
+    machine_timer_obj_t *self = (machine_timer_obj_t*) args[0];
+    machine_timer_init_helper(self, n_args - 1, args + 1, kw_args);
+    timer_enable(self->id);
+    return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(machine_timer_init_obj, 0, machine_timer_init);
 

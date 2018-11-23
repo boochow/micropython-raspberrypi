@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <limits.h>
 
 #include "arm_exceptions.h"
 #include "bcm283x.h"
@@ -7,6 +8,7 @@
 #include "bcm283x_gpio.h"
 #include "bcm283x_aux.h"
 #include "bcm283x_mailbox.h"
+#include "bcm283x_clockmgr.h"
 #include "vc_property.h"
 #include "rpi.h"
 
@@ -21,6 +23,30 @@ volatile uint64_t systime(void) {
     uint64_t t;
     uint32_t chi;
     uint32_t clo;
+
+    chi = systimer->CHI;
+    clo = systimer->CLO;
+    if (chi != systimer->CHI) {
+        chi = systimer->CHI;
+        clo = systimer->CLO;
+    }
+    t = chi;
+    t = t << 32;
+    t += clo;
+    return t;
+}
+
+volatile uint64_t elapsed_from(uint64_t t) {
+    uint64_t now;
+    uint32_t chi;
+    uint32_t clo;
+
+    now = systime();
+    if (now > t) {
+        return now - t;
+    } else {
+        return ULLONG_MAX - t + now;
+    }
 
     chi = systimer->CHI;
     clo = systimer->CLO;
@@ -106,7 +132,11 @@ static void get_clock_value() {
 }
 
 void rpi_init() {
+    // read values of freq_cpu, freq_core
     get_clock_value();
-// any initialization 
+    // set PWM clock to 960KHz (19.2MHz / 20) as a default value
+    clockmgr_config_ctl((clockmgr_t *) CM_PWM, CM_CTL_MASH_1STG | CM_CTL_ENAB | CM_CTL_SRC_OSC);
+    clockmgr_config_div((clockmgr_t *) CM_PWM, 20, 0);
+    // any additional initialization 
 }
 

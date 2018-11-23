@@ -7,6 +7,7 @@
 extern systimer_t *systimer;
 
 volatile uint64_t systime(void);
+volatile uint64_t elapsed_from(uint64_t t);
 
 extern void isr_irq_timer(void);
 extern void isr_irq_mini_uart(void);

@@ -203,7 +203,7 @@ STATIC mp_obj_t machine_i2c_scan(mp_obj_t self_in) {
     }
     return list;
 }
-MP_DEFINE_CONST_FUN_OBJ_1(machine_i2c_scan_obj, machine_i2c_scan);
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_i2c_scan_obj, machine_i2c_scan);
 
 STATIC int read_mem(mp_obj_t self_in, uint16_t addr, uint32_t memaddr, uint8_t addrsize, uint8_t *buf, size_t len) {
     machine_i2c_obj_t *self = (machine_i2c_obj_t*) MP_OBJ_TO_PTR(self_in);
@@ -258,7 +258,7 @@ STATIC mp_obj_t machine_i2c_readfrom_mem(size_t n_args, const mp_obj_t *pos_args
 
     return mp_obj_new_str_from_vstr(&mp_type_bytes, &vstr);
 }
-MP_DEFINE_CONST_FUN_OBJ_KW(machine_i2c_readfrom_mem_obj, 1, machine_i2c_readfrom_mem);
+STATIC MP_DEFINE_CONST_FUN_OBJ_KW(machine_i2c_readfrom_mem_obj, 1, machine_i2c_readfrom_mem);
 
 STATIC mp_obj_t machine_i2c_readfrom_mem_into(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_addr, ARG_memaddr, ARG_buf, ARG_addrsize };
@@ -282,7 +282,7 @@ STATIC mp_obj_t machine_i2c_readfrom_mem_into(size_t n_args, const mp_obj_t *pos
 
     return mp_const_none;
 }
-MP_DEFINE_CONST_FUN_OBJ_KW(machine_i2c_readfrom_mem_into_obj, 1, machine_i2c_readfrom_mem_into);
+STATIC MP_DEFINE_CONST_FUN_OBJ_KW(machine_i2c_readfrom_mem_into_obj, 1, machine_i2c_readfrom_mem_into);
 
 #define MAX_MEMADDR_SIZE (4)
 

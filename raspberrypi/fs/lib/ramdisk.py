@@ -17,43 +17,24 @@ class RAMBlockDev:
         if op == 5: # get block size
             return self.block_size
 
-def _mount_initrd(num_blocks):
+def mount_initrd(num_blocks, path):
     try:
         import uos
         bdev = RAMBlockDev(512, num_blocks)
         uos.VfsFat.mkfs(bdev)
         vfs = uos.VfsFat(bdev)
-        uos.mount(vfs, '/')
+        uos.mount(vfs, path)
     except:
-        print("error: _mount_initrd")
+        print("error: mount_initrd")
 
-def _create_ramdisk():
-    _mount_initrd(2048)
-    f=open('RAM disk.txt', 'w')
+def create_ramdisk():
+    mount_initrd(2048, '/tmp')
+    f=open('/tmp/RAM disk.txt', 'w')
     f.write('''
 Size   = 512 bytes * 2048 blocks
 Format = FAT16
 ''')
     f.close()
 
-def set_fb_console(on=True):
-    global theScreen
-    from FBConsole import FBConsole, RPiScreen
-    import os
-    if on:
-        theScreen = FBConsole(RPiScreen(480,270))
-        os.dupterm(theScreen)
-    else:
-        theScreen = os.dupterm(None)
-
-def _boot_main():
-    _create_ramdisk()
-    import machine
-    try:
-        if (machine.usb_mode() == 'host'):
-            set_fb_console()
-    except:
-        pass
-
-print("_boot.py")
-_boot_main()
+if __name__ == '__main__':
+    create_ramdisk()

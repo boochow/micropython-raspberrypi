@@ -159,8 +159,6 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         mp_init();
         mp_obj_list_init(mp_sys_path, 0);
         mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_)); // current dir (or base dir of the script)
-        mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_lib));
-        mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_));
         mp_obj_list_init(mp_sys_argv, 0);
 
         mp_hal_stdout_tx_strn("\r\n", 2);
@@ -170,11 +168,25 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
 #endif
 
 #if MICROPY_MOUNT_SD_CARD
+        bool mounted_sdcard = false;
         if (!use_qemu) {
-            bool mounted_sdcard = false;
+            const char boot_py[] = "boot.py";
             mounted_sdcard = init_sdcard_fs();
             if (mounted_sdcard) {
-                printf("Mounted SD card !\n\r");
+                mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd_slash_lib));
+                mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd));
+                // Run the boot config script from the current directory.
+                if (pyexec_mode_kind == PYEXEC_MODE_FRIENDLY_REPL) {
+                    mp_import_stat_t stat = mp_import_stat(boot_py);
+                    if (stat == MP_IMPORT_STAT_FILE) {
+                        int ret = pyexec_file(boot_py);
+                        if (!ret) {
+                            printf("%s: execution error\n\r", boot_py);
+                        }
+                    }
+                }
+            } else {
+                printf("Failed mounting SD card\n\r");
             }
         }
 #endif
@@ -188,6 +200,23 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
             usbkbd_setup();
         }
 #endif
+
+#if MICROPY_MOUNT_SD_CARD
+        if (!use_qemu && mounted_sdcard) {
+            // Run the main script from the current directory.
+            const char main_py[] = "main.py";
+            if (pyexec_mode_kind == PYEXEC_MODE_FRIENDLY_REPL) {
+                mp_import_stat_t stat = mp_import_stat(main_py);
+                if (stat == MP_IMPORT_STAT_FILE) {
+                    int ret = pyexec_file(main_py);
+                    if (!ret) {
+                        printf("%s: execution error\n\r", main_py);
+                    }
+                }
+            }
+        }
+#endif
+
         for (;;) {
             if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
                 if (pyexec_raw_repl() != 0) {

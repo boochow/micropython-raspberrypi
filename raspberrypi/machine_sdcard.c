@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 
 #include "py/runtime.h"
@@ -28,20 +29,69 @@ STATIC mp_obj_t machine_sdcard_readblocks(mp_obj_t self, mp_obj_t block_num, mp_
     mp_buffer_info_t bufinfo;
     mp_get_buffer_raise(buf, &bufinfo, MP_BUFFER_WRITE);
     mp_uint_t ret = sd_readblock(mp_obj_get_int(block_num), bufinfo.buf, bufinfo.len / SDCARD_BLOCK_SIZE);
-    // ret = the number of bytes read into buf
     return mp_obj_new_bool(ret == 0);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(machine_sdcard_readblocks_obj, machine_sdcard_readblocks);
 
 STATIC mp_obj_t machine_sdcard_writeblocks(mp_obj_t self, mp_obj_t block_num, mp_obj_t buf) {
-/*    mp_buffer_info_t bufinfo;
+    mp_buffer_info_t bufinfo;
     mp_get_buffer_raise(buf, &bufinfo, MP_BUFFER_READ);
-    mp_uint_t ret = sdcard_write_blocks(bufinfo.buf, mp_obj_get_int(block_num), bufinfo.len / SDCARD_BLOCK_SIZE);
+    mp_uint_t ret = sd_writeblock(mp_obj_get_int(block_num), bufinfo.buf, bufinfo.len / SDCARD_BLOCK_SIZE);
     return mp_obj_new_bool(ret == 0);
-*/
-    return mp_obj_new_bool(false);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(machine_sdcard_writeblocks_obj, machine_sdcard_writeblocks);
+
+/*
+// sector read/write test method
+// danger!! this method writes new data to lba=0xbb00
+void print_buf(unsigned char *buf) {
+    for(int l=0; l < 4; l++) {
+        for(int x=0; x < 16; x++) {
+            printf("%02x ", buf[l*16+x]);
+        }
+        printf("  ");
+        for(int x=0; x < 16; x++) {
+            unsigned char c = buf[l*16+x];
+            if ((c < 0x20) || (c == 0x7f)) {
+                c = '.';
+            } 
+            printf("%c", c);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+STATIC mp_obj_t machine_sdcard_test(mp_obj_t self) {
+    unsigned char bufsave[512];
+    unsigned char bufw[512];
+    unsigned char bufr[512];
+    int ret;
+    for(int i = 0; i < 512; i++) {
+        bufr[i] = 0;
+        bufw[i] = 0x20 + (i % 64);
+    }
+    ret = sd_readblock(0xbb00, bufsave, 1);
+    printf("result=%d\n", ret);
+    print_buf(bufsave);
+
+    ret = sd_writeblock(0xbb00, bufw, 1);
+    printf("result=%d\n", ret);
+    print_buf(bufw);
+    ret = sd_readblock(0xbb00, bufr, 1);
+    printf("result=%d\n", ret);
+    print_buf(bufr);
+
+    ret = sd_writeblock(0xbb00, bufsave, 1);
+    printf("result=%d\n", ret);
+    ret = sd_readblock(0xbb00, bufr, 1);
+    printf("result=%d\n", ret);
+    print_buf(bufr);
+
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_sdcard_test_obj, machine_sdcard_test);
+*/
 
 STATIC mp_obj_t machine_sdcard_ioctl(mp_obj_t self, mp_obj_t cmd_in, mp_obj_t arg_in) {
     mp_int_t cmd = mp_obj_get_int(cmd_in);
@@ -79,6 +129,7 @@ STATIC const mp_rom_map_elem_t machine_sdcard_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_readblocks), MP_ROM_PTR(&machine_sdcard_readblocks_obj) },
     { MP_ROM_QSTR(MP_QSTR_writeblocks), MP_ROM_PTR(&machine_sdcard_writeblocks_obj) },
     { MP_ROM_QSTR(MP_QSTR_ioctl), MP_ROM_PTR(&machine_sdcard_ioctl_obj) },
+//    { MP_ROM_QSTR(MP_QSTR_test), MP_ROM_PTR(&machine_sdcard_test_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(machine_sdcard_locals_dict, machine_sdcard_locals_dict_table);

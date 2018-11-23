@@ -16,6 +16,9 @@ CROSS_COMPILE = arm-none-eabi-
 
 OBJCPY=$(CROSS_COMPILE)objcopy
 
+ZIP = /usr/bin/zip
+RELEASE=`/bin/date +%Y%m%d`-rpi
+RELFILES=fs/
 
 INC += -I.
 INC += -I$(TOP)
@@ -71,6 +74,10 @@ SRC_C = \
 	machine_spi.c \
 	vc_property.c \
 	gpu_vc_property.c \
+	bcm283x_clockmgr.c \
+	pwm.c \
+	machine_pwm.c \
+	machine_clockmgr.c \
 
 SRC_LIB = $(addprefix lib/,\
 	utils/stdout_helpers.c \
@@ -114,6 +121,7 @@ SRC_S = \
 
 # USB
 ifneq ($(MICROPY_HW_USBHOST),0)
+RELEASE=$(RELEASE)-usb
 USBHOST_DIR=csud
 CSUDLIB=libcsud.a
 INC += -I$(USBHOST_DIR)/include
@@ -180,6 +188,11 @@ $(BUILD)/config.txt: config-template.txt
 	$(Q)$(RM) -f $@
 	$(Q)$(CP) $< $@
 	$(Q)$(ECHO) "kernel=firmware.img" >> $@
+
+release: $(BUILD)/firmware.img $(BUILD)/config.txt
+	$(ECHO) "GEN $@"
+	$(Q)$(ZIP) $(BUILD)/$(RELEASE) -j $^
+	$(Q)cd $(RELFILES); $(ZIP) ../$(BUILD)/$(RELEASE) -r .
 
 $(BUILD)/firmware-qemu.img: $(OBJ) $(USBLIB)
 	$(ECHO) "LINK $@"
