@@ -379,7 +379,7 @@ STATIC mp_obj_t machine_pwm_fifo_write(size_t n_args, const mp_obj_t *pos_args, 
     uint64_t t_start;
     t_start = systime();
     mp_buffer_info_t bufinfo1, bufinfo2;
-    size_t pos;
+    size_t pos = 0;
 
     if (args[ARG_buf1].u_obj != mp_const_none) {
         uint64_t timeout = args[ARG_timeout].u_int;
