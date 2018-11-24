@@ -121,7 +121,7 @@ SRC_S = \
 
 # USB
 ifneq ($(MICROPY_HW_USBHOST),0)
-RELEASE=$(RELEASE)-usb
+RELEASE :=$(RELEASE)-usb
 USBHOST_DIR=csud
 CSUDLIB=libcsud.a
 INC += -I$(USBHOST_DIR)/include
@@ -190,9 +190,9 @@ $(BUILD)/config.txt: config-template.txt
 	$(Q)$(ECHO) "kernel=firmware.img" >> $@
 
 release: $(BUILD)/firmware.img $(BUILD)/config.txt
-	$(ECHO) "GEN $@"
-	$(Q)$(ZIP) $(BUILD)/$(RELEASE) -j $^
-	$(Q)cd $(RELFILES); $(ZIP) ../$(BUILD)/$(RELEASE) -r .
+	$(ECHO) "GEN $(BUILD)/$(RELEASE).zip"
+	$(Q)$(ZIP) $(BUILD)/$(RELEASE) -jq $^
+	$(Q)cd $(RELFILES); $(ZIP) ../$(BUILD)/$(RELEASE) -rq .
 
 $(BUILD)/firmware-qemu.img: $(OBJ) $(USBLIB)
 	$(ECHO) "LINK $@"
