@@ -2,6 +2,21 @@
 .section .init
 
 _start:
+    // return to supervisor mode
+    mrs r0, cpsr
+    bic r0, r0, #0x1f
+    orr r0, r0, #0x13
+    msr spsr_cxsf, r0
+    add r0, pc, #4
+    msr ELR_hyp, r0
+    eret
+
+	// stop core 1-3
+//	mrc p15, #0, r1, c0, c0, #5
+//	and r1, r1, #3
+//	cmp r1, #2
+//	bne halt
+	
     // set IRQ_MODE stack
     ldr r0, =0x000000d2
     msr cpsr_c, r0

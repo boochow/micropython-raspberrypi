@@ -181,8 +181,8 @@ __attribute__(( always_inline )) static inline mp_uint_t disable_irq(void) {
 // We need to provide a declaration/definition of alloca()
 #include <alloca.h>
 
-#define MICROPY_HW_BOARD_NAME        "Raspberry Pi"
-#define MICROPY_HW_MCU_NAME          "ARM1176JZF-S"
+#define MICROPY_HW_BOARD_NAME        "Raspberry Pi2"
+#define MICROPY_HW_MCU_NAME          "Cortex-A7"
 #define MICROPY_PY_SYS_PLATFORM      "raspberrypi"
 
 #define MP_STATE_PORT MP_STATE_VM

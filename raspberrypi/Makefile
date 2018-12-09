@@ -1,4 +1,4 @@
-BOARD ?= RPI1
+BOARD ?= RPI2
 
 include ../micropython/py/mkenv.mk
 include mpconfigport.mk
@@ -27,8 +27,10 @@ INC += -I$(BUILD)
 # compiler settings
 CWARN = -Wall -Werror
 CWARN += -Wpointer-arith -Wuninitialized
-CFLAGS_RPI = -marm -mcpu=arm1176jzf-s -mno-unaligned-access 
+CFLAGS_RPI = -marm -mcpu=cortex-a7 -mno-unaligned-access 
 CFLAGS = $(INC) $(CWARN) -std=c99 -nostdlib $(CFLAGS_RPI) $(CFLAGS_MOD) $(COPT)
+
+#ASFLAGS = -mcpu=cortex-a7 -mfpu=neon
 
 #Debugging/Optimization
 ifeq ($(DEBUG), 1)
@@ -200,15 +202,15 @@ $(BUILD)/firmware-qemu.img: $(OBJ) $(USBLIB)
 	$(OBJCPY) $@.elf -O binary $@
 
 qemu: $(BUILD)/firmware-qemu.img
-	@qemu-system-arm \
+	@./qemu-system-arm \
 	-kernel $< \
 	-append "qemu" \
-	-cpu arm1176 \
-	-M versatilepb \
+	-M raspi2 \
 	-m 512 \
 	-no-reboot \
 	-nographic \
 	-monitor null \
+	-smp 4 \
 	-serial stdio
 
 include $(TOP)/py/mkrules.mk
