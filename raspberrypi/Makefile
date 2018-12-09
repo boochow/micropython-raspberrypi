@@ -7,7 +7,7 @@ include mpconfigport.mk
 QSTR_DEFS = qstrdefsport.h
 
 FROZEN_DIR ?= scripts
-FROZEN_MPY_DIR ?= modules
+# FROZEN_MPY_DIR ?= modules
 
 # include py core make definitions
 include $(TOP)/py/py.mk
