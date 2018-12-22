@@ -162,7 +162,7 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         mp_obj_list_init(mp_sys_argv, 0);
         mp_hal_stdout_tx_strn("\r\n", 2);
 
-#if MICROPY_MODULE_FROZEN
+#if MICROPY_MODULE_FROZEN_MPY
         pyexec_frozen_module("_boot.py");
 #endif
 
