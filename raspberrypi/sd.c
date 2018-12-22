@@ -78,7 +78,6 @@ static inline void wait_cycles(int32_t count)
                  : "=r"(count): [count]"0"(count) : "cc");
 }
 
-
 #define EMMC_ARG2           ((volatile unsigned int*)(MMIO_BASE+0x00300000))
 #define EMMC_BLKSIZECNT     ((volatile unsigned int*)(MMIO_BASE+0x00300004))
 #define EMMC_ARG1           ((volatile unsigned int*)(MMIO_BASE+0x00300008))
@@ -169,8 +168,7 @@ static inline void wait_cycles(int32_t count)
 #define ACMD41_CMD_CCS      0x40000000
 #define ACMD41_ARG_HC       0x51ff8000
 
-unsigned long sd_scr[2], sd_ocr, sd_err, sd_hv;
-unsigned long long sd_rca;
+unsigned int sd_scr[2], sd_ocr, sd_rca, sd_err, sd_hv;
 
 /**
  * Wait for data or command ready
@@ -344,7 +342,7 @@ int sd_clk(unsigned int f)
  */
 int sd_init()
 {
-    long long r,cnt,ccs=0;
+    int r,cnt,ccs=0;
     // GPIO_CD
     r=IOREG(GPFSEL4); r&=~(7<<(7*3)); IOREG(GPFSEL4)=r;
     IOREG(GPPUD)=2; wait_cycles(150); IOREG(GPPUDCLK1)=(1<<15); wait_cycles(150); IOREG(GPPUD)=0; IOREG(GPPUDCLK1)=0;
@@ -392,7 +390,6 @@ int sd_init()
             uart_puts("VOLTAGE ");
         if(r&ACMD41_CMD_CCS)
             uart_puts("CCS ");
-        uart_hex(r>>32);
         uart_hex(r);
         uart_send('\n');
         if(sd_err!=SD_TIMEOUT && sd_err!=SD_OK ) {
@@ -408,7 +405,6 @@ int sd_init()
 
     sd_rca = sd_cmd(CMD_SEND_REL_ADDR,0);
     uart_puts("EMMC: CMD_SEND_REL_ADDR returned ");
-    uart_hex(sd_rca>>32);
     uart_hex(sd_rca);
     uart_send('\n');
     if(sd_err) return sd_err;
