@@ -160,7 +160,6 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         mp_obj_list_init(mp_sys_path, 0);
         mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_)); // current dir (or base dir of the script)
         mp_obj_list_init(mp_sys_argv, 0);
-
         mp_hal_stdout_tx_strn("\r\n", 2);
 
 #if MICROPY_MODULE_FROZEN
@@ -171,8 +170,10 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         bool mounted_sdcard = false;
         if (!use_qemu) {
             const char boot_py[] = "boot.py";
+            printf("mounting SD card...");
             mounted_sdcard = init_sdcard_fs();
             if (mounted_sdcard) {
+                printf("done\n\r");
                 mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd_slash_lib));
                 mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd));
                 // Run the boot config script from the current directory.
@@ -186,22 +187,10 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
                     }
                 }
             } else {
-                printf("Failed mounting SD card\n\r");
+                printf("failed\n\r");
             }
         }
-#endif
 
-#ifdef MICROPY_HW_USBHOST
-        // USB host library initialization must be called after MicroPython's
-        // initialization because USB host library allocates its memory blocks
-        // using MemoryAllocate in usbhost.c which in turn calls m_alloc().
-        if (!use_qemu) {
-            rpi_usb_host_init();
-            usbkbd_setup();
-        }
-#endif
-
-#if MICROPY_MOUNT_SD_CARD
         if (!use_qemu && mounted_sdcard) {
             // Run the main script from the current directory.
             const char main_py[] = "main.py";
@@ -214,6 +203,17 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
                     }
                 }
             }
+        }
+#endif
+
+#ifdef MICROPY_HW_USBHOST
+        // USB host library initialization must be called after MicroPython's
+        // initialization because USB host library allocates its memory blocks
+        // using MemoryAllocate in usbhost.c which in turn calls m_alloc().
+        if (!use_qemu) {
+            printf("Initializing USB\n\r");
+            rpi_usb_host_init();
+            usbkbd_setup();
         }
 #endif
 
