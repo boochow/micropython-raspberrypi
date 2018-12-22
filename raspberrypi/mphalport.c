@@ -91,7 +91,7 @@ uint32_t uart_rx_state(void) {
 }
 
 #ifdef MICROPY_HW_USBHOST
-usbkbd_t usbkbd;
+static usbkbd_t usbkbd;
 
 void usbkbd_setup() {
     usbkbd_init(&usbkbd);
