@@ -3,15 +3,15 @@
 
 _start:
     // return to supervisor mode
-    mrs r0, cpsr
-    bic r0, r0, #0x1f
-    orr r0, r0, #0x13
-    msr spsr_cxsf, r0
-    add r0, pc, #4
-    msr ELR_hyp, r0
-    eret
+	mrs r0, cpsr
+	bic r0, r0, #0x1f
+	orr r0, r0, #0x13
+	msr spsr_cxsf, r0
+	add r0, pc, #4
+	msr ELR_hyp, r0
+	eret
 
-	// stop core 1-3
+	// stop core 1-3; QEMU only
 //	mrc p15, #0, r1, c0, c0, #5
 //	and r1, r1, #3
 //	cmp r1, #2
