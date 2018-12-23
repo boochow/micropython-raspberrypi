@@ -46,6 +46,16 @@ void rpi_usb_host_init(void) {
         }
 
         usb_initialised = 1;
+        mp_hal_delay_ms(100);
+        UsbCheckForChange();
+        mp_hal_delay_ms(100);
+        UsbCheckForChange();
+        mp_hal_delay_ms(100);
+        UsbCheckForChange();
+        mp_hal_delay_ms(100);
+        UsbCheckForChange();
+        mp_hal_delay_ms(100);
+        UsbCheckForChange();
     }
 }
 
