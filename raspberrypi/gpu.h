@@ -2,6 +2,7 @@
 #define MICROPY_INCLUDED_RPI_GPU_H
 
 #include <stdint.h>
+#include "bcm283x_mailbox.h"
 
 typedef volatile struct                                          \
 __attribute__((aligned(16))) _fb_info_t {

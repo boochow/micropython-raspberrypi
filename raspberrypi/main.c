@@ -160,33 +160,47 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         mp_obj_list_init(mp_sys_path, 0);
         mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_)); // current dir (or base dir of the script)
         mp_obj_list_init(mp_sys_argv, 0);
-
         mp_hal_stdout_tx_strn("\r\n", 2);
 
-#if MICROPY_MODULE_FROZEN
+#if MICROPY_MODULE_FROZEN_MPY
         pyexec_frozen_module("_boot.py");
 #endif
 
 #if MICROPY_MOUNT_SD_CARD
         bool mounted_sdcard = false;
         if (!use_qemu) {
-            const char boot_py[] = "boot.py";
+            printf("mounting SD card...");
             mounted_sdcard = init_sdcard_fs();
             if (mounted_sdcard) {
-                mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd_slash_lib));
-                mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd));
+                printf("done\n\r");
+            } else {
+                printf("failed\n\r");
+            }
+        }
+
+        if (!use_qemu && mounted_sdcard) {
+            mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd_slash_lib));
+            mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd));
+            if (pyexec_mode_kind == PYEXEC_MODE_FRIENDLY_REPL) {
+                mp_import_stat_t stat;
                 // Run the boot config script from the current directory.
-                if (pyexec_mode_kind == PYEXEC_MODE_FRIENDLY_REPL) {
-                    mp_import_stat_t stat = mp_import_stat(boot_py);
-                    if (stat == MP_IMPORT_STAT_FILE) {
-                        int ret = pyexec_file(boot_py);
-                        if (!ret) {
-                            printf("%s: execution error\n\r", boot_py);
-                        }
+                const char boot_py[] = "boot.py";
+                stat = mp_import_stat(boot_py);
+                if (stat == MP_IMPORT_STAT_FILE) {
+                    int ret = pyexec_file(boot_py);
+                    if (!ret) {
+                        printf("%s: execution error\n\r", boot_py);
                     }
                 }
-            } else {
-                printf("Failed mounting SD card\n\r");
+                // Run the main script from the current directory.
+                const char main_py[] = "main.py";
+                stat = mp_import_stat(main_py);
+                if (stat == MP_IMPORT_STAT_FILE) {
+                    int ret = pyexec_file(main_py);
+                    if (!ret) {
+                        printf("%s: execution error\n\r", main_py);
+                    }
+                }
             }
         }
 #endif
@@ -198,22 +212,6 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         if (!use_qemu) {
             rpi_usb_host_init();
             usbkbd_setup();
-        }
-#endif
-
-#if MICROPY_MOUNT_SD_CARD
-        if (!use_qemu && mounted_sdcard) {
-            // Run the main script from the current directory.
-            const char main_py[] = "main.py";
-            if (pyexec_mode_kind == PYEXEC_MODE_FRIENDLY_REPL) {
-                mp_import_stat_t stat = mp_import_stat(main_py);
-                if (stat == MP_IMPORT_STAT_FILE) {
-                    int ret = pyexec_file(main_py);
-                    if (!ret) {
-                        printf("%s: execution error\n\r", main_py);
-                    }
-                }
-            }
         }
 #endif
 
