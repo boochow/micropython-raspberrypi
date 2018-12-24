@@ -169,33 +169,32 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
 #if MICROPY_MOUNT_SD_CARD
         bool mounted_sdcard = false;
         if (!use_qemu) {
-            const char boot_py[] = "boot.py";
             printf("mounting SD card...");
             mounted_sdcard = init_sdcard_fs();
             if (mounted_sdcard) {
                 printf("done\n\r");
-                mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd_slash_lib));
-                mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd));
-                // Run the boot config script from the current directory.
-                if (pyexec_mode_kind == PYEXEC_MODE_FRIENDLY_REPL) {
-                    mp_import_stat_t stat = mp_import_stat(boot_py);
-                    if (stat == MP_IMPORT_STAT_FILE) {
-                        int ret = pyexec_file(boot_py);
-                        if (!ret) {
-                            printf("%s: execution error\n\r", boot_py);
-                        }
-                    }
-                }
             } else {
                 printf("failed\n\r");
             }
         }
 
         if (!use_qemu && mounted_sdcard) {
-            // Run the main script from the current directory.
-            const char main_py[] = "main.py";
+            mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd_slash_lib));
+            mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd));
             if (pyexec_mode_kind == PYEXEC_MODE_FRIENDLY_REPL) {
-                mp_import_stat_t stat = mp_import_stat(main_py);
+                mp_import_stat_t stat;
+                // Run the boot config script from the current directory.
+                const char boot_py[] = "boot.py";
+                stat = mp_import_stat(boot_py);
+                if (stat == MP_IMPORT_STAT_FILE) {
+                    int ret = pyexec_file(boot_py);
+                    if (!ret) {
+                        printf("%s: execution error\n\r", boot_py);
+                    }
+                }
+                // Run the main script from the current directory.
+                const char main_py[] = "main.py";
+                stat = mp_import_stat(main_py);
                 if (stat == MP_IMPORT_STAT_FILE) {
                     int ret = pyexec_file(main_py);
                     if (!ret) {
@@ -211,7 +210,6 @@ int arm_main(uint32_t r0, uint32_t id, const int32_t *atag) {
         // initialization because USB host library allocates its memory blocks
         // using MemoryAllocate in usbhost.c which in turn calls m_alloc().
         if (!use_qemu) {
-            printf("Initializing USB\n\r");
             rpi_usb_host_init();
             usbkbd_setup();
         }
