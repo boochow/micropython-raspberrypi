@@ -3,7 +3,11 @@
 
 #include <stdint.h>
 
+#ifdef RPI1
+#define IO_BASE   0x20000000U
+#else
 #define IO_BASE   0x3F000000U
+#endif
 
 #define IOREG(X)  (*(volatile uint32_t *) (X))
 

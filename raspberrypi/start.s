@@ -2,6 +2,7 @@
 .section .init
 
 _start:
+.ifndef RPI1
     // return to supervisor mode
 	mrs r0, cpsr
 	bic r0, r0, #0x1f
@@ -10,6 +11,7 @@ _start:
 	add r0, pc, #4
 	msr ELR_hyp, r0
 	eret
+.endif
 
 	// stop core 1-3; QEMU only
 //	mrc p15, #0, r1, c0, c0, #5
@@ -43,6 +45,14 @@ _start:
     /// enable branch prediction
 //    orr r0, r0, #0x00000800
 //    mcr p15, 0, r0, c1, c0, 0
+
+    //enable fpu
+    mrc p15, 0, r0, c1, c0, 2
+    orr r0,r0,#0x300000 	;@ single precision
+    orr r0,r0,#0xC00000 	;@ double precision
+    mcr p15, 0, r0, c1, c0, 2
+    mov r0,#0x40000000
+    fmxr fpexc,r0
 
     // jump to main
     ldr r0, =0x00000000

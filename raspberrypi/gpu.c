@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "bcm283x_mailbox.h"
 #include "gpu.h"
 
 void rpi_fb_init(fb_info_t *fb_info) {
