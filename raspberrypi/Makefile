@@ -27,8 +27,11 @@ INC += -I$(BUILD)
 # compiler settings
 CWARN = -Wall -Werror
 CWARN += -Wpointer-arith -Wuninitialized
-CFLAGS_RPI = -marm -mcpu=arm1176jzf-s -mno-unaligned-access 
+CFLAGS_RPI = -marm -mcpu=arm1176jzf-s -mno-unaligned-access
+CFLAGS_FPU = -mfloat-abi=hard -mfpu=vfp
+CFLAGS_RPI += $(CFLAGS_FPU)
 CFLAGS = $(INC) $(CWARN) -std=c99 -nostdlib $(CFLAGS_RPI) $(CFLAGS_MOD) $(COPT)
+ASFLAGS = $(CFLAGS_FPU)
 
 #Debugging/Optimization
 ifeq ($(DEBUG), 1)
@@ -213,3 +216,6 @@ qemu: $(BUILD)/firmware-qemu.img
 
 include $(TOP)/py/mkrules.mk
 
+$(BUILD)/%.o: %.s
+	$(ECHO) "AS $<"
+	$(Q)$(AS) $(ASFLAGS) -o $@ $<
