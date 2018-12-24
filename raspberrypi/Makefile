@@ -27,7 +27,7 @@ INC += -I$(BUILD)
 # compiler settings
 CWARN = -Wall -Werror
 CWARN += -Wpointer-arith -Wuninitialized
-CFLAGS_RPI = -marm -mcpu=cortex-a7 -mno-unaligned-access -mhard-float -mfpu=neon
+CFLAGS_RPI = -marm -mcpu=cortex-a7 -mno-unaligned-access
 CFLAGS = $(INC) $(CWARN) -std=c99 -nostdlib $(CFLAGS_RPI) $(CFLAGS_MOD) 
 
 #ASFLAGS = -mcpu=cortex-a7 -mfpu=neon
@@ -139,7 +139,7 @@ USBLIB = $(BUILD)/$(CSUDLIB)
 $(USBLIB): 
 	$(ECHO) "MAKE $@"
 	$(Q)$(MKDIR) -p $(BUILD)/$(USBHOST_DIR)
-	$(Q)$(MAKE) -s -C $(USBHOST_DIR) driver CONFIG=FINAL TYPE=DRIVER TARGET=RPI2 GNU=$(CROSS_COMPILE) BUILD=../$(BUILD)/$(USBHOST_DIR)/ LIBNAME=../$(USBLIB) COPT='-Os -mhard-float -mfpu=neon'
+	$(Q)$(MAKE) -s -C $(USBHOST_DIR) driver CONFIG=FINAL TYPE=DRIVER TARGET=RPI2 GNU=$(CROSS_COMPILE) BUILD=../$(BUILD)/$(USBHOST_DIR)/ LIBNAME=../$(USBLIB) COPT='-Os'
 
 endif
 
