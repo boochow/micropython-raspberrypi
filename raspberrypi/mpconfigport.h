@@ -115,11 +115,11 @@
 
 #define MP_SSIZE_MAX (0x7fffffff)
 
-#define UINT_FMT "%u"
-#define INT_FMT "%d"
+#define UINT_FMT "%lu"
+#define INT_FMT "%ld"
 
-typedef int mp_int_t; // must be pointer size
-typedef unsigned mp_uint_t; // must be pointer size
+typedef int32_t mp_int_t; // must be pointer size
+typedef uint32_t mp_uint_t; // must be pointer size
 typedef long mp_off_t;
 
 // dummy print
