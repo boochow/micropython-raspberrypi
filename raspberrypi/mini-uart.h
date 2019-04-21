@@ -7,6 +7,7 @@ void mini_uart_init();
 void mini_uart_putc(char c);
 uint32_t mini_uart_getc(void);
 uint32_t mini_uart_rx_state(void);
+void mini_uart_set_speed(uint32_t speed);
 
 void isr_irq_mini_uart(void);
 

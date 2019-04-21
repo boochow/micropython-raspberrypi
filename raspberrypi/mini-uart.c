@@ -71,6 +71,11 @@ void isr_irq_mini_uart(void) {
 
 #endif // USE_IRQ
 
+void mini_uart_set_speed(uint32_t speed) {
+    mini_uart->CNTL = 0;   // disable mini uart
+    mini_uart->BAUD = ((rpi_freq_core() / speed) >> 3) - 1;
+    mini_uart->CNTL = 3;   // enable mini uart
+}
 
 void mini_uart_init() {
     // set GPIO14, GPIO15, alternate function 5
