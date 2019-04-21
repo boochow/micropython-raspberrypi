@@ -1,3 +1,4 @@
+# BOARD: RPI1 or RPI2
 BOARD ?= RPI1
 
 include ../micropython/py/mkenv.mk
@@ -7,7 +8,7 @@ include mpconfigport.mk
 QSTR_DEFS = qstrdefsport.h
 
 FROZEN_DIR ?= scripts
-FROZEN_MPY_DIR ?= modules
+# FROZEN_MPY_DIR ?= modules
 
 # include py core make definitions
 include $(TOP)/py/py.mk
@@ -27,11 +28,20 @@ INC += -I$(BUILD)
 # compiler settings
 CWARN = -Wall -Werror
 CWARN += -Wpointer-arith -Wuninitialized
-CFLAGS_RPI = -marm -mcpu=arm1176jzf-s -mno-unaligned-access
-CFLAGS_FPU = -mfloat-abi=hard -mfpu=vfp
-CFLAGS_RPI += $(CFLAGS_FPU)
-CFLAGS = $(INC) $(CWARN) -std=c99 -nostdlib $(CFLAGS_RPI) $(CFLAGS_MOD) $(COPT)
-ASFLAGS = $(CFLAGS_FPU)
+
+ifeq ($(BOARD),RPI1)
+	CFLAGS_RPI = -marm -mcpu=arm1176jzf-s -mno-unaligned-access -DRPI1
+	CFLAGS_FPU = -mfloat-abi=hard -mfpu=vfp
+	ASFLAGS = --defsym RPI1=1
+else ifeq ($(BOARD),RPI2)
+	CFLAGS_RPI = -marm -mcpu=cortex-a7 -mno-unaligned-access
+	CFLAGS_FPU = -mfloat-abi=hard -mfpu=neon-vfpv4
+endif
+
+CFLAGS_RPI += $(CFLAGS_FPU) -fsingle-precision-constant -Wdouble-promotion
+CFLAGS = $(INC) $(CWARN) -std=c99 -nostdlib $(CFLAGS_RPI) $(CFLAGS_MOD) 
+
+ASFLAGS += $(CFLAGS_FPU)
 
 #Debugging/Optimization
 ifeq ($(DEBUG), 1)
@@ -140,7 +150,7 @@ USBLIB = $(BUILD)/$(CSUDLIB)
 $(USBLIB): 
 	$(ECHO) "MAKE $@"
 	$(Q)$(MKDIR) -p $(BUILD)/$(USBHOST_DIR)
-	$(Q)$(MAKE) -s -C $(USBHOST_DIR) driver CONFIG=FINAL TYPE=DRIVER TARGET=RPI GNU=$(CROSS_COMPILE) BUILD=../$(BUILD)/$(USBHOST_DIR)/ LIBNAME=../$(USBLIB)
+	$(Q)$(MAKE) -s -C $(USBHOST_DIR) driver CONFIG=FINAL TYPE=DRIVER TARGET=$(BOARD) GNU=$(CROSS_COMPILE) BUILD=../$(BUILD)/$(USBHOST_DIR)/ LIBNAME=../$(USBLIB) COPT="-Os $(CFLAGS_FPU)"
 
 endif
 
@@ -202,8 +212,9 @@ $(BUILD)/firmware-qemu.img: $(OBJ) $(USBLIB)
 	$(Q)$(LD) --defsym=_load_addr=0x10000 $(LDFLAGS) -o $@.elf $^ $(LIBS)
 	$(OBJCPY) $@.elf -O binary $@
 
+ifeq ($(BOARD),RPI1)
 qemu: $(BUILD)/firmware-qemu.img
-	@qemu-system-arm \
+	@./qemu-system-arm \
 	-kernel $< \
 	-append "qemu" \
 	-cpu arm1176 \
@@ -213,6 +224,22 @@ qemu: $(BUILD)/firmware-qemu.img
 	-nographic \
 	-monitor null \
 	-serial stdio
+
+else ifeq ($(BOARD),RPI2)
+qemu: $(BUILD)/firmware-qemu.img
+	@./qemu-system-arm \
+	-kernel $< \
+	-append "qemu" \
+	-M raspi2 \
+	-cpu arm1176 \
+	-m 1G \
+	-no-reboot \
+	-nographic \
+	-monitor null \
+	-smp 4 \
+	-serial stdio
+
+endif
 
 include $(TOP)/py/mkrules.mk
 

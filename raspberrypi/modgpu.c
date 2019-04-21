@@ -59,7 +59,7 @@ STATIC mp_obj_t gpu_fb_data(void) {
     if (fb_info.buf_addr == 0) {
         return mp_const_none;
     } else {
-        return mp_obj_new_bytearray_by_ref(fb_info.buf_size, (void *) fb_info.buf_addr);
+        return mp_obj_new_bytearray_by_ref(fb_info.buf_size, (void *) PHYSICALADDR(fb_info.buf_addr));
     }
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(gpu_fb_data_obj, gpu_fb_data);

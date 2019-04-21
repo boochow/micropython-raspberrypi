@@ -1,6 +1,6 @@
 # micropython-raspberrypi
 
-MicroPython on bare metal Raspberry Pi Zero / Zero W
+MicroPython on bare metal Raspberry Pi Zero / Zero W / 2
 
 ## How to build
 ```
@@ -8,9 +8,16 @@ git clone https://github.com/boochow/micropython-raspberrypi.git
 cd micropython-raspberrypi
 git submodule update --init
 cd micropython; git submodule update --init; cd ..
-cd raspberrypi; make
+cd raspberrypi
 ```
-
+for Raspberry Pi Zero/Zero W,
+```
+make BOARD=RPI1
+```
+for Raspberry Pi 2
+```
+make BOARD=RPI2
+```
 ## Options
 1. `MICROPY_HW_USBHOST=1` to enable USB keyboard support.
 1. `MICROPY_MOUNT_SD_CARD=1` to mount SD card on /sd in the boot sequence.
