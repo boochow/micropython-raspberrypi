@@ -157,7 +157,7 @@ endif
 # FatFS VFS support
 SRC_LIB += $(addprefix lib/,\
 	oofatfs/ff.c \
-	oofatfs/option/unicode.c \
+	oofatfs/ffunicode.c \
 	)
 CFLAGS += -DMICROPY_MOUNT_SD_CARD=$(MICROPY_MOUNT_SD_CARD)
 
