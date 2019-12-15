@@ -20,7 +20,7 @@ make BOARD=RPI2
 ```
 ## Options
 1. `MICROPY_HW_USBHOST=1` to enable USB keyboard support.
-1. `MICROPY_MOUNT_SD_CARD=1` to mount SD card on /sd in the boot sequence.
+1. `MICROPY_MOUNT_SD_CARD=1` to mount SD card on /sd in the boot sequence(default).
 
 ## How to install
 
