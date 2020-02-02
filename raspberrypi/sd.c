@@ -30,7 +30,7 @@
 #include "sd.h"
 
 #define MMIO_BASE IO_BASE
-#define wait_msec(n) mp_hal_delay_us(n)
+#define wait_msec(n) mp_hal_delay_ms(n)
 
 #define VERBOSE 0
 
