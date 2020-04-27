@@ -142,17 +142,17 @@ const mp_obj_type_t machine_sdcard_type = {
 };
 
 void sdcard_init_vfs(fs_user_mount_t *vfs, int part) {
-    vfs->base.type = &mp_fat_vfs_type;
-    vfs->flags |= FSUSER_HAVE_IOCTL;
-    vfs->fatfs.drv = vfs;
-    vfs->fatfs.part = part;
-    vfs->readblocks[0] = (mp_obj_t)&machine_sdcard_readblocks_obj;
-    vfs->readblocks[1] = (mp_obj_t)&machine_sdcard_obj;
+    vfs_fat->base.type = &mp_fat_vfs_type;
+    vfs_fat->flags |= FSUSER_HAVE_IOCTL;
+    vfs_fat->fatfs.drv = vfs;
+    vfs_fat->fatfs.part = part;
+    vfs_fat->readblocks[0] = (mp_obj_t)&machine_sdcard_readblocks_obj;
+    vfs_fat->readblocks[1] = (mp_obj_t)&machine_sdcard_obj;
 //    vfs->readblocks[2] = (mp_obj_t)sdcard_read_blocks; // native version
-    vfs->writeblocks[0] = (mp_obj_t)&machine_sdcard_writeblocks_obj;
-    vfs->writeblocks[1] = (mp_obj_t)&machine_sdcard_obj;
+    vfs_fat->writeblocks[0] = (mp_obj_t)&machine_sdcard_writeblocks_obj;
+    vfs_fat->writeblocks[1] = (mp_obj_t)&machine_sdcard_obj;
 //    vfs->writeblocks[2] = (mp_obj_t)sdcard_write_blocks; // native version
-    vfs->u.ioctl[0] = (mp_obj_t)&machine_sdcard_ioctl_obj;
-    vfs->u.ioctl[1] = (mp_obj_t)&machine_sdcard_obj;
+    vfs_fat->u.ioctl[0] = (mp_obj_t)&machine_sdcard_ioctl_obj;
+    vfs_fat->u.ioctl[1] = (mp_obj_t)&machine_sdcard_obj;
 }
 
