@@ -122,3 +122,11 @@ void mp_hal_stdout_tx_strn(const char *str, mp_uint_t len) {
     mp_uos_dupterm_tx_strn(str, len);
 #endif
 }
+
+/*This is a dummy function (needed because "lib/utils/sys_stdio_mphal: 
+Add support to poll sys.stdin and sys.stdou" was added to 1.12 in
+to lib/utils/sys_stdio_mphal.c by commit b7da67cdaaf32317cfc9a3940bd58f2aab4976c9
+previous build for raspi (1.11) did not have this addition */
+uintptr_t mp_hal_stdio_poll(uintptr_t poll_flags) {
+    return 0;
+}
