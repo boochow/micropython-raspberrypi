@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "py/mpconfig.h"
 #include "py/obj.h"
+#include "py/stream.h"
 #include "rpi.h"
 #include "mphalport.h"
 #include "mini-uart.h"
@@ -20,8 +21,8 @@ void mp_hal_delay_ms(mp_uint_t ms) {
 
     end_time = systime() + ms * 1000;
     while(systime() < end_time) {
-        extern void mp_handle_pending(void);
-        mp_handle_pending();
+        extern void mp_handle_pending(bool raise_exc);
+        mp_handle_pending(true);
     }
   
     return;
@@ -110,8 +111,8 @@ int mp_hal_stdin_rx_chr(void) {
         if (uart_rx_state()) {
             return uart_getc();
         }
-        extern void mp_handle_pending(void);
-        mp_handle_pending();
+        extern void mp_handle_pending(bool raise_exc);
+        mp_handle_pending(true);
     }
 }
 
