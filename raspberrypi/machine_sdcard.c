@@ -144,16 +144,16 @@ const mp_obj_type_t machine_sdcard_type = {
 
 void sdcard_init_vfs(fs_user_mount_t *vfs, int part) {
     vfs->base.type = &mp_fat_vfs_type;
-    vfs->blockdev.flags |= MP_BLOCKDEV_FLAG_NATIVE | MP_BLOCKDEV_FLAG_HAVE_IOCTL;
+    vfs->blockdev.flags |= MP_BLOCKDEV_FLAG_HAVE_IOCTL;
     vfs->fatfs.drv = vfs;
     vfs->fatfs.part = part;
-    vfs->blockdev.readblocks[0] = MP_OBJ_FROM_PTR(&pyb_sdcard_readblocks_obj);
-    vfs->blockdev.readblocks[1] = MP_OBJ_FROM_PTR(&pyb_sdcard_obj);
+    vfs->blockdev.readblocks[0] = MP_OBJ_FROM_PTR(&machine_sdcard_readblocks_obj);
+    vfs->blockdev.readblocks[1] = MP_OBJ_FROM_PTR(&machine_sdcard_obj);
 // vfs->blockdev.readblocks[2] = MP_OBJ_FROM_PTR(sdcard_read_blocks); // native version
-    vfs->blockdev.writeblocks[0] = MP_OBJ_FROM_PTR(&pyb_sdcard_writeblocks_obj);
-    vfs->blockdev.writeblocks[1] = MP_OBJ_FROM_PTR(&pyb_sdcard_obj);
+    vfs->blockdev.writeblocks[0] = MP_OBJ_FROM_PTR(&machine_sdcard_writeblocks_obj);
+    vfs->blockdev.writeblocks[1] = MP_OBJ_FROM_PTR(&machine_sdcard_obj);
 //  vfs->blockdev.writeblocks[2] = MP_OBJ_FROM_PTR(sdcard_write_blocks); // native version
-    vfs->blockdev.u.ioctl[0] = MP_OBJ_FROM_PTR(&pyb_sdcard_ioctl_obj);
-    vfs->blockdev.u.ioctl[1] = MP_OBJ_FROM_PTR(&pyb_sdcard_obj);
+    vfs->blockdev.u.ioctl[0] = MP_OBJ_FROM_PTR(&machine_sdcard_ioctl_obj);
+    vfs->blockdev.u.ioctl[1] = MP_OBJ_FROM_PTR(&machine_sdcard_obj);
 }
 
