@@ -1,0 +1,13 @@
+# Raspberry Pi boot configration
+# see https://www.raspberrypi.org/documentation/configuration/config-txt/
+# for more details.
+
+# fake_vsync_isr=1
+# framebuffer_swap=0
+# gpu_mem=48
+# init_emmc_clock=100000000
+# arm_freq=1000
+# gpu_freq=300
+# core_freq=400
+# sdram_freq=450
+kernel=firmware.img
