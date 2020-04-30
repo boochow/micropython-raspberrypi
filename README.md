@@ -2,6 +2,15 @@
 
 MicroPython on bare metal Raspberry Pi Zero / Zero W / 2
 
+## Pre-built files
+The source has been precompiled and the binaries placed in the build folder for convenience. Feel free to use those if you do not want to build yourself or are having difficult time building.
+
+The files are:
+- firmware.img
+- config.txt
+
+Download these and follow the "How to install" instructions below.
+
 ## How to build
 ```
 git clone https://github.com/boochow/micropython-raspberrypi.git

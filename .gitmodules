@@ -1,6 +1,6 @@
-[submodule "micropython"]
-	path = micropython
-	url = https://github.com/micropython/micropython.git
 [submodule "raspberrypi/csud"]
 	path = raspberrypi/csud
 	url = https://github.com/boochow/csud
+[submodule "micropython"]
+	path = micropython
+	url = https://github.com/micropython/micropython

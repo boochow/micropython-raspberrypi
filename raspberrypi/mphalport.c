@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "py/mpconfig.h"
 #include "py/obj.h"
+#include "py/stream.h"
 #include "rpi.h"
 #include "mphalport.h"
 #include "mini-uart.h"
@@ -20,8 +21,8 @@ void mp_hal_delay_ms(mp_uint_t ms) {
 
     end_time = systime() + ms * 1000;
     while(systime() < end_time) {
-        extern void mp_handle_pending(void);
-        mp_handle_pending();
+        extern void mp_handle_pending(bool raise_exc);
+        mp_handle_pending(true);
     }
   
     return;
@@ -110,8 +111,8 @@ int mp_hal_stdin_rx_chr(void) {
         if (uart_rx_state()) {
             return uart_getc();
         }
-        extern void mp_handle_pending(void);
-        mp_handle_pending();
+        extern void mp_handle_pending(bool raise_exc);
+        mp_handle_pending(true);
     }
 }
 
@@ -121,4 +122,12 @@ void mp_hal_stdout_tx_strn(const char *str, mp_uint_t len) {
 #ifdef MICROPY_PY_OS_DUPTERM
     mp_uos_dupterm_tx_strn(str, len);
 #endif
+}
+
+/*This is a dummy function (needed because "lib/utils/sys_stdio_mphal: 
+Add support to poll sys.stdin and sys.stdou" was added to 1.12 in
+to lib/utils/sys_stdio_mphal.c by commit b7da67cdaaf32317cfc9a3940bd58f2aab4976c9
+previous build for raspi (1.11) did not have this addition */
+uintptr_t mp_hal_stdio_poll(uintptr_t poll_flags) {
+    return 0;
 }

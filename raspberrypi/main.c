@@ -69,7 +69,7 @@ STATIC bool init_sdcard_fs(void) {
             printf("vfs=NULL\n");
             break;
         }
-        vfs_fat->flags = FSUSER_FREE_OBJ;
+        vfs_fat->blockdev.flags = MP_BLOCKDEV_FLAG_FREE_OBJ;
         sdcard_init_vfs(vfs_fat, part_num);
 
         // try to mount the partition
